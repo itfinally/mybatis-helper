@@ -1,0 +1,11 @@
+.iml
+.git
+.idea
+.DS_store
+
+**/target
+**/*.iml
+**/.idea
+**/.DS_store
+
+mybatis-tools-testing/

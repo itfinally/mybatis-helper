@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/my_blog?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
+#    username: dev_bb_demand bb_demand_db
+#    password: KWj5oAsrqPPFwPy4aHZvTsFNiKFMza
+    hikari:
+      auto-commit: false
+      connection-test-query: select 1
+
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password:
+
+mybatis:
+  generator:
+    entity-package: repository.entity
+    basic-package: top.itfinally.mybatis
+    repository-package: repository
+    java-file-path: /src/test/java
+    resources-path: /src/test/resources/mapper
+    super-entity: top.itfinally.mybatis.BasicEntity
+
+#    include-services: true
+#    service-package: services.impl
+#
+#    include-controller: true
+#    controller-package: web
+#
+#    include-service-interfaces: true
+#    services-interface-package: services

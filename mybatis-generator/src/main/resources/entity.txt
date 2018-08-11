@@ -1,0 +1,58 @@
+package [( ${item.packageName} )];
+
+import java.util.Objects;
+import javax.persistence.*;
+[# th:if="${properties.superEntity} != null"]
+import [( ${item.superClass.name} )];
+[/]
+[# th:each="depend : ${entity.depends}"]
+import [( ${depend} )];
+[/]
+@Table( name = "[( ${entity.jdbcName} )]"[# th:if="${not entity.uniqueKeys.isEmpty()}"], uniqueConstraints = {
+[# th:each="uniqueKey, iterator : ${entity.uniqueKeys}"]
+@UniqueConstraint( name = "[( ${uniqueKey.keyName} )]", columnNames = { [# th:each="column, subIterator : ${uniqueKey.columns}"]"[( ${column.jdbcName} )]"[# th:if="${subIterator.index + 1 < subIterator.size}"], [/][/] } )[# th:if="${iterator.index + 1 < iterator.size}"], [/]
+[/]
+}[/] )
+public class [( ${item.className} )][# th:if="${properties.superEntity} != null"] extends [( ${item.superClass.simpleName} )][/] {
+
+  [# th:each="column : ${entity.columns}"]
+  [# th:if="${not column.hidden}"]
+  [# th:if="${not #strings.isEmpty( column.comment )}"]
+  /**
+   * [( ${column.comment} )]
+   */
+  [/]
+  private [( ${column.javaType} )] [( ${column.javaName} )];
+  [/]
+  [/]
+
+  [# th:each="column : ${entity.columns}"]
+  [# th:if="${not column.hidden}"]
+  @Column( name = "[( ${column.jdbcName} )]" )
+  public [( ${column.javaType} )] [( ${column.getterName} )]() {
+    return [( ${column.javaName} )];
+  }
+
+  public [( ${item.className} )] [( ${column.setterName} )]( [( ${column.javaType} )] [( ${column.javaName} )] ) {
+    this.[( ${column.javaName} )] = [( ${column.javaName} )];
+    return this;
+  }
+
+  [/]
+  [/]
+
+  @Override
+    public boolean equals( Object o ) {
+      if ( this == o ) return true;
+      if ( !( o instanceof [( ${item.className} )] ) ) return false;
+      [( ${item.className} )] that = ( [( ${item.className} )] ) o;
+      [# th:each="column, iterator : ${entity.columns}"]
+      [# th:if="0 == ${iterator.index}"]return[/] Objects.equals( [( ${column.getterName} )](), that.[( ${column.getterName} )]() ) [( ${iterator.index + 1 < iterator.size ? '&&' : ';'} )]
+      [/]
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash( [# th:each="column, iterator : ${entity.columns}"][( ${column.getterName} )]()[# th:if="${iterator.index + 1 < iterator.size}"], [/][/] );
+    }
+}

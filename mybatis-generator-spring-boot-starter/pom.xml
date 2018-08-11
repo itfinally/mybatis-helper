@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>mybatis-generator-spring-boot-starter</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>mybatis-generator-spring-boot-starter</name>
+
+  <parent>
+    <groupId>top.itfinally</groupId>
+    <artifactId>mybatis-helper-parent</artifactId>
+    <version>1.0-release</version>
+    <relativePath>../mybatis-helper-parent/pom.xml</relativePath>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>top.itfinally</groupId>
+      <artifactId>generator</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>mybatis-generator-spring-boot-starter</finalName>
+  </build>
+</project>

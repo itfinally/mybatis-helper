@@ -47,20 +47,20 @@ public class [( ${item.className} )][# th:if="${properties.superEntity} != null"
     if ( !( o instanceof [( ${item.className} )] ) ) return false;
     [( ${item.className} )] that = ( [( ${item.className} )] ) o;
     [# th:each="column, iterator : ${entity.columns}"]
-    [( ${0 ==iterator.index ? 'return' : '        '} )] Objects.equals( [( ${column.getterName} )](), that.[( ${column.getterName} )]() ) [( ${iterator.index + 1 < iterator.size ? '&&' : ';'} )]
+    [( ${0 ==iterator.index ? 'return' : '       '} )] Objects.equals( [( ${column.getterName} )](), that.[( ${column.getterName} )]() ) [( ${iterator.index + 1 < iterator.size ? '&&' : ';'} )]
     [/]
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash( [# th:each="column, iterator : ${entity.columns}"][( ${column.getterName} )]()[# th:if="${iterator.index + 1 < iterator.size}"], [/][/] );
+    return Objects.hash( [# th:each="column, iterator : ${entity.columns}"][( ${column.getterName} )]()[( ${iterator.index + 1 < iterator.size ? ', ' : '' } )][# th:if="${iterator.index != 0 and 1 == iterator.index / 5.0f}"][( ${#strings.unescapeJava('\n            ')} )][/][/] );
   }
 
   @Override
   public String toString() {
     return "[( ${item.className} )]{" +
             [# th:each="column : ${entity.columns}"]
-            "[( ${column.javaName} )]=[# th:if="${#strings.equals(column.javaName, 'String')}"]'[/]" + [( ${column.getterName} )]() + [# th:if="${#strings.equals(column.javaName, 'String')}"]'\'' +[/]
+            "[( ${column.javaName} )]=[# th:if="${#strings.equals(column.javaType, 'String')}"]'[/]" + [( ${column.getterName} )]() + [# th:if="${#strings.equals(column.javaType, 'String')}"]'\'' +[/]
             [/]
             '}';
     }

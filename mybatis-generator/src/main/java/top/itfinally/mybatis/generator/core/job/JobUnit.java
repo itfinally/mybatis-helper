@@ -19,8 +19,8 @@ public class JobUnit {
     private String templatePath;
     private Class<?> superClass;
 
-    // 输出文件时, 对应的文件存在多个空白行时会被合并成 blackLine 行
-    private int blackLine;
+    // 输出文件时, 对应的文件存在多个空白行时会被合并成 blankLine 行
+    private int blankLine;
 
     public String getClassName() {
         return className;
@@ -67,12 +67,12 @@ public class JobUnit {
         return this;
     }
 
-    public int getBlackLine() {
-        return blackLine;
+    public int getBlankLine() {
+        return blankLine;
     }
 
-    public JobUnit setBlackLine( int blackLine ) {
-        this.blackLine = blackLine;
+    public JobUnit setBlankLine( int blankLine ) {
+        this.blankLine = blankLine;
         return this;
     }
 
@@ -84,7 +84,7 @@ public class JobUnit {
                 ", packageName='" + packageName + '\'' +
                 ", templatePath='" + templatePath + '\'' +
                 ", superClass=" + superClass +
-                ", blackLine=" + blackLine +
+                ", blankLine=" + blankLine +
                 '}';
     }
 }

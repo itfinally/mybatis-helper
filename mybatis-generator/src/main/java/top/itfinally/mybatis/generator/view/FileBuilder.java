@@ -139,7 +139,7 @@ public class FileBuilder {
             }
 
             // previous 是 elems[ --index ], next 是 elems[ index++ ]
-            if ( range > jobUnit.getBlackLine() ) {
+            if ( range > jobUnit.getBlankLine() ) {
                 iterator.previous();
                 delLine = iterator.previous();
 
@@ -148,11 +148,11 @@ public class FileBuilder {
                     delLine = iterator.previous();
                 }
 
-                if ( jobUnit.getBlackLine() > 0 ) {
+                if ( jobUnit.getBlankLine() > 0 ) {
                     iterator.next();
 
                     // 重新添加指定数量的空行
-                    for ( int subIndex = 0, subLength = jobUnit.getBlackLine(); subIndex < subLength; subIndex += 1 ) {
+                    for ( int subIndex = 0, subLength = jobUnit.getBlankLine(); subIndex < subLength; subIndex += 1 ) {
                         iterator.add( "" );
                     }
                 }

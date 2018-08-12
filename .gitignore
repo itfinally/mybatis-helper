@@ -3,9 +3,10 @@
 .idea
 .DS_store
 
-**/target
+**/test
 **/*.iml
 **/.idea
+**/target
 **/.DS_store
 
 mybatis-tools-testing/

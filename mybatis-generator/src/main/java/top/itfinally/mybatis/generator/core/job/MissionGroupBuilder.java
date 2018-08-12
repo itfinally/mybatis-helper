@@ -11,8 +11,6 @@ import javax.annotation.Resource;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -75,7 +73,7 @@ public class MissionGroupBuilder {
         String className = String.format( "%sEntity", table.getJavaName() );
 
         JobUnit job = new JobUnit()
-                .setBlackLine( 1 )
+                .setBlankLine( 1 )
                 .setClassName( className )
                 .setPackageName( properties.getEntityPackage() )
                 .setWritePath( buildJavaFilePath( properties.getEntityPackage(), className ) );
@@ -91,7 +89,7 @@ public class MissionGroupBuilder {
         String className = String.format( "%sMapper", table.getJavaName() );
 
         JobUnit job = new JobUnit()
-                .setBlackLine( 1 )
+                .setBlankLine( 1 )
                 .setClassName( className )
                 .setPackageName( properties.getRepositoryPackage() )
                 .setWritePath( buildJavaFilePath( properties.getRepositoryPackage(), className ) );
@@ -111,7 +109,7 @@ public class MissionGroupBuilder {
         String className = String.format( properties.isIncludeServiceInterfaces() ? "%sServiceImpl" : "%sService", table.getJavaName() );
 
         JobUnit job = new JobUnit()
-                .setBlackLine( 1 )
+                .setBlankLine( 1 )
                 .setClassName( className )
                 .setPackageName( properties.getServicePackage() )
                 .setWritePath( buildJavaFilePath( properties.getServicePackage(), className ) );
@@ -127,7 +125,7 @@ public class MissionGroupBuilder {
         String className = String.format( "%sService", table.getJavaName() );
 
         JobUnit job = new JobUnit()
-                .setBlackLine( 1 )
+                .setBlankLine( 1 )
                 .setClassName( className )
                 .setPackageName( properties.getServicesInterfacePackage() )
                 .setWritePath( buildJavaFilePath( properties.getServicesInterfacePackage(), className ) );
@@ -143,7 +141,7 @@ public class MissionGroupBuilder {
         String className = String.format( "%sController", table.getJavaName() );
 
         JobUnit job = new JobUnit()
-                .setBlackLine( 1 )
+                .setBlankLine( 1 )
                 .setClassName( className )
                 .setPackageName( properties.getControllerPackage() )
                 .setWritePath( buildJavaFilePath( properties.getControllerPackage(), className ) );

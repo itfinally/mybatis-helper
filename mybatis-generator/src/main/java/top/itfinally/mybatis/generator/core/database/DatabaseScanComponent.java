@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.generator.configuration.NamingMapping;
 import top.itfinally.mybatis.generator.core.NamingConverter;
+import top.itfinally.mybatis.generator.core.PrimitiveType;
 import top.itfinally.mybatis.generator.core.database.entity.ColumnEntity;
 import top.itfinally.mybatis.generator.core.database.entity.TableEntity;
 import top.itfinally.mybatis.generator.core.database.mapper.InformationMapper;
@@ -73,15 +74,16 @@ public abstract class DatabaseScanComponent {
      *  ***************************************************
      *
      * 根据属性名和 javaType 创建合适的 getter / setter 方法.
-     * 主要是针对 javaType 为 Integer 或 int, 并且 jdbcName 以 is 开头的属性,
+     * 主要是针对 javaType 为整型( 含短整型和长整型 ), 并且 jdbcName 以 is 开头的属性,
      * 该属性将统一转换为 Boolean 类型
      */
     protected void buildGS( ColumnEntity column ) {
         String attrName;
         char[] javaNameChars;
 
-        if ( column.getJdbcName().startsWith( "is" ) && ( int.class == column.getJavaTypeClass()
-                || Integer.class == column.getJavaTypeClass() ) ) {
+        Class<?> type = PrimitiveType.getType( column.getJavaTypeClass() );
+        if ( column.getJdbcName().startsWith( "is" ) && ( byte.class == type
+                || short.class == type || int.class == type || long.class == type ) ) {
 
             javaNameChars = column
                     .setJavaType( "boolean" )

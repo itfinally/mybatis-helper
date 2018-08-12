@@ -3,10 +3,13 @@ package top.itfinally.mybatis;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import top.itfinally.mybatis.generator.core.database.DatabaseScanComponent;
+import top.itfinally.mybatis.generator.core.database.entity.TableEntity;
+import top.itfinally.mybatis.generator.core.job.JobGroup;
 import top.itfinally.mybatis.generator.core.job.MissionGroupBuilder;
 import top.itfinally.mybatis.generator.MybatisGeneratorRunner;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <pre>
@@ -30,7 +33,6 @@ public class ApplicationStarter extends MybatisGeneratorRunner {
     private MissionGroupBuilder groupBuilder;
 
     public static void main( String[] args ) {
-//        System.out.println( BasicEntity.class.getTypeParameters() );
         SpringApplication.run( ApplicationStarter.class, args );
     }
 

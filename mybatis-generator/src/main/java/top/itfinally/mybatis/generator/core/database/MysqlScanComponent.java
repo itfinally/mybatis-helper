@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import top.itfinally.mybatis.generator.core.PrimitiveType;
 import top.itfinally.mybatis.generator.core.database.entity.ColumnEntity;
 import top.itfinally.mybatis.generator.core.database.entity.ReferenceKeyEntity;
 import top.itfinally.mybatis.generator.core.database.entity.TableEntity;
@@ -77,28 +78,31 @@ public class MysqlScanComponent extends DatabaseScanComponent {
 
     private TableEntity extractColumnsInfo( TableEntity table ) {
         List<Map<String, String>> columns = Builder.informationMapper.getColumns( table.getJdbcName() );
-        Set<ColumnEntity> columnSet = new HashSet<>( columns.size() );
+        List<ColumnEntity> columnList = new ArrayList<>( columns.size() );
         ColumnEntity column;
+        Class<?> type;
 
         TypeMapping typeMapping;
         for ( Map<String, String> item : columns ) {
             column = new ColumnEntity()
                     .setComment( item.get( "COLUMN_COMMENT" ) )
-                    .setJdbcType( item.get( "DATA_TYPE" ).toLowerCase() )
+                    .setJdbcType( item.get( "DATA_TYPE" ).toUpperCase() )
                     .setJdbcName( item.get( "COLUMN_NAME" ).toLowerCase() )
                     .setNotNull( "no".equalsIgnoreCase( item.get( "IS_NULLABLE" ) ) )
                     .setPrimaryKey( "pri".equalsIgnoreCase( item.get( "COLUMN_KEY" ) ) )
                     .setJavaName( namingConverter.convert( ( item.get( "COLUMN_NAME" ) ).toLowerCase() ) );
 
             typeMapping = Builder.initTypeMapping( column );
+            type = PrimitiveType.getType( typeMapping.getJavaType() );
+
             buildGS( column.setJavaTypeClass( typeMapping.getJavaType() )
-                    .setJavaType( typeMapping.getJavaType().getSimpleName() ) );
+                    .setJavaType( null == type ? typeMapping.getJavaType().getSimpleName() : type.getSimpleName() ) );
 
             table.setPrimaryKey( column );
-            columnSet.add( column );
+            columnList.add( column );
         }
 
-        return table.setColumns( columnSet );
+        return table.setColumns( columnList );
     }
 
     private void relationshipAnalyzing( TableEntity table, Map<String, TableEntity> tableMapping ) {

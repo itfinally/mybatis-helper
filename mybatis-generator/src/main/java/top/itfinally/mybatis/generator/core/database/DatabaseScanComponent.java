@@ -185,7 +185,7 @@ public abstract class DatabaseScanComponent {
         }
 
         static TypeMapping initTypeMapping( ColumnEntity column ) {
-            String key = column.getJdbcType().toUpperCase();
+            String key = column.getJdbcType();
             TypeMapping typeMapping = typeMappings.get( key );
             if ( typeMapping != null ) {
                 return typeMapping;

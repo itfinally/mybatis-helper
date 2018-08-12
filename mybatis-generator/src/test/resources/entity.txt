@@ -28,7 +28,7 @@ public class [( ${item.className} )][# th:if="${properties.superEntity} != null"
 
   [# th:each="column : ${entity.columns}"]
   [# th:if="${not column.hidden}"]
-  @Column( name = "[( ${column.jdbcName} )]" )
+  @Column( name = "[( ${column.jdbcName} )]"[# th:if="${column.notNull}"], nullable = false[/] )
   public [( ${column.javaType} )] [( ${column.getterName} )]() {
     return [( ${column.javaName} )];
   }
@@ -42,17 +42,26 @@ public class [( ${item.className} )][# th:if="${properties.superEntity} != null"
   [/]
 
   @Override
-    public boolean equals( Object o ) {
-      if ( this == o ) return true;
-      if ( !( o instanceof [( ${item.className} )] ) ) return false;
-      [( ${item.className} )] that = ( [( ${item.className} )] ) o;
-      [# th:each="column, iterator : ${entity.columns}"]
-      [# th:if="0 == ${iterator.index}"]return[/] Objects.equals( [( ${column.getterName} )](), that.[( ${column.getterName} )]() ) [( ${iterator.index + 1 < iterator.size ? '&&' : ';'} )]
-      [/]
-    }
+  public boolean equals( Object o ) {
+    if ( this == o ) return true;
+    if ( !( o instanceof [( ${item.className} )] ) ) return false;
+    [( ${item.className} )] that = ( [( ${item.className} )] ) o;
+    [# th:each="column, iterator : ${entity.columns}"]
+    [( ${0 ==iterator.index ? 'return' : '       '} )] Objects.equals( [( ${column.getterName} )](), that.[( ${column.getterName} )]() ) [( ${iterator.index + 1 < iterator.size ? '&&' : ';'} )]
+    [/]
+  }
 
-    @Override
-    public int hashCode() {
-      return Objects.hash( [# th:each="column, iterator : ${entity.columns}"][( ${column.getterName} )]()[# th:if="${iterator.index + 1 < iterator.size}"], [/][/] );
+  @Override
+  public int hashCode() {
+    return Objects.hash( [# th:each="column, iterator : ${entity.columns}"][( ${column.getterName} )]()[( ${iterator.index + 1 < iterator.size ? ', ' : '' } )][# th:if="${iterator.index != 0 and 1 == iterator.index / 5.0f}"][( ${#strings.unescapeJava('\n            ')} )][/][/] );
+  }
+
+  @Override
+  public String toString() {
+    return "[( ${item.className} )]{" +
+            [# th:each="column : ${entity.columns}"]
+            "[( ${column.javaName} )]=[# th:if="${#strings.equals(column.javaType, 'String')}"]'[/]" + [( ${column.getterName} )]() + [# th:if="${#strings.equals(column.javaType, 'String')}"]'\'' +[/]
+            [/]
+            '}';
     }
 }

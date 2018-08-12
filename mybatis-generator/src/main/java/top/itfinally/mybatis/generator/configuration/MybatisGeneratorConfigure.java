@@ -1,8 +1,6 @@
 package top.itfinally.mybatis.generator.configuration;
 
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.spring4.SpringTemplateEngine;
@@ -25,10 +23,9 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 public class MybatisGeneratorConfigure {
 
     @Bean
-    @ConditionalOnMissingBean( name = "mybatisGeneratorAutoConfigure" )
     public MapperScannerConfigurer mapperScannerConfigurer() {
         MapperScannerConfigurer configurer = new MapperScannerConfigurer();
-        configurer.setBasePackage( "top.itfinally.mybatis.generator.core.database.mapper.*" );
+        configurer.setBasePackage( "top.itfinally.mybatis.generator.core.database.mapper" );
 
         return configurer;
     }

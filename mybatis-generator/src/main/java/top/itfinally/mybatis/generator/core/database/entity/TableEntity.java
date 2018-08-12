@@ -28,7 +28,7 @@ public class TableEntity {
     private ColumnEntity primaryKey;
 
     // 数据库表所有的行
-    private Set<ColumnEntity> columns;
+    private List<ColumnEntity> columns;
 
     // java 实体依赖的所有对象的全限定名
     private Set<String> depends = new HashSet<>();
@@ -75,11 +75,11 @@ public class TableEntity {
         return this;
     }
 
-    public Set<ColumnEntity> getColumns() {
+    public List<ColumnEntity> getColumns() {
         return columns;
     }
 
-    public TableEntity setColumns( Set<ColumnEntity> columns ) {
+    public TableEntity setColumns( List<ColumnEntity> columns ) {
         this.columns = columns;
         return this;
     }

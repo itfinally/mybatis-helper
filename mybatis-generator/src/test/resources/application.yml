@@ -16,8 +16,8 @@ mybatis:
     entity-package: repository.entity
     basic-package: top.itfinally.mybatis
     repository-package: repository
-    java-file-path: /src/test/java
-    resources-path: /src/test/resources/mapper
+    java-file-path: /mybatis-generator/src/test/java
+    resources-path: /mybatis-generator/src/test/resources/mapper
     super-entity: top.itfinally.mybatis.BasicEntity
 
 #    include-services: true

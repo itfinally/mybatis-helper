@@ -3,6 +3,7 @@ package top.itfinally.mybatis.paging.collection;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -20,8 +21,8 @@ import java.util.Set;
 public class PagingSet<E> extends AbstractPaging implements Set<E> {
     private final Set<E> originalSet;
 
-    public PagingSet( Set<E> originalSet, String sql ) {
-        super( sql );
+    public PagingSet( Set<E> originalSet, String sql, Object[] orderedArgs ) {
+        super( sql, orderedArgs );
 
         this.originalSet = originalSet;
     }
@@ -91,5 +92,21 @@ public class PagingSet<E> extends AbstractPaging implements Set<E> {
         originalSet.clear();
     }
 
+    @Override
+    public boolean equals( Object o ) {
+        if ( this == o ) return true;
+        if ( !( o instanceof PagingSet ) ) return false;
+        PagingSet<?> pagingSet = ( PagingSet<?> ) o;
+        return Objects.equals( originalSet, pagingSet.originalSet );
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash( originalSet );
+    }
+
+    @Override
+    public String toString() {
+        return originalSet.toString();
+    }
 }

@@ -14,9 +14,11 @@ package top.itfinally.mybatis.paging.collection;
  */
 public abstract class AbstractPaging implements BasicPaging {
     private final String sql;
+    private final Object[] orderedArgs;
 
-    public AbstractPaging( String sql ) {
+    AbstractPaging( String sql, Object[] orderedArgs ) {
         this.sql = sql;
+        this.orderedArgs = orderedArgs;
     }
 
     @Override

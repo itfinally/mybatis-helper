@@ -3,6 +3,7 @@ package top.itfinally.mybatis.paging.collection;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -20,8 +21,8 @@ import java.util.Set;
 public class PagingMap<K, V> extends AbstractPaging implements Map<K, V> {
     private final Map<K, V> originalMap;
 
-    public PagingMap( Map<K, V> originalMap, String sql ) {
-        super( sql );
+    public PagingMap( Map<K, V> originalMap, String sql, Object[] orderedArgs ) {
+        super( sql, orderedArgs );
 
         this.originalMap = originalMap;
     }
@@ -84,5 +85,23 @@ public class PagingMap<K, V> extends AbstractPaging implements Map<K, V> {
     @Override
     public @Nonnull Set<Entry<K, V>> entrySet() {
         return originalMap.entrySet();
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( this == o ) return true;
+        if ( !( o instanceof PagingMap ) ) return false;
+        PagingMap<?, ?> pagingMap = ( PagingMap<?, ?> ) o;
+        return Objects.equals( originalMap, pagingMap.originalMap );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( originalMap );
+    }
+
+    @Override
+    public String toString() {
+        return originalMap.toString();
     }
 }

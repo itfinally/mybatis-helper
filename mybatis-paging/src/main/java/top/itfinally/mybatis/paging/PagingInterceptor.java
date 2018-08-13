@@ -1,7 +1,10 @@
 package top.itfinally.mybatis.paging;
 
+import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -9,10 +12,7 @@ import top.itfinally.mybatis.paging.collection.PagingList;
 import top.itfinally.mybatis.paging.collection.PagingMap;
 import top.itfinally.mybatis.paging.collection.PagingSet;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <pre>
@@ -26,31 +26,30 @@ import java.util.Set;
  * *********************************************
  * </pre>
  */
+@SuppressWarnings( "unchecked" )
 @Intercepts( @Signature( type = Executor.class, method = "query",
         args = { MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class } ) )
 public class PagingInterceptor implements Interceptor {
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public Object intercept( Invocation invocation ) throws Throwable {
         Object[] thisArgs = invocation.getArgs();
         MappedStatement mappedStatement = ( MappedStatement ) thisArgs[ 0 ];
-        Object[] args = thisArgs.length > 1 ? ( Object[] ) invocation.getArgs()[ 1 ] : new Object[ 0 ];
+        Object unknownArgs = invocation.getArgs()[ 1 ];
 
-        mappedStatement.getBoundSql( args ).getSql();
-
+        BoundSql boundSql = mappedStatement.getBoundSql( unknownArgs );
         Object result = invocation.proceed();
 
         if ( result instanceof List ) {
-            return new PagingList<>( ( List<Object> ) result, "" );
+            return new PagingList<>( ( List<Object> ) result, boundSql.getSql(), makeOrderedArgs( boundSql ) );
         }
 
         if ( result instanceof Set ) {
-            return new PagingSet<>( ( Set<Object> ) result, "" );
+            return new PagingSet<>( ( Set<Object> ) result, boundSql.getSql(), makeOrderedArgs( boundSql ) );
         }
 
         if ( result instanceof Map ) {
-            return new PagingMap<>( ( Map<Object, Object> ) result, "" );
+            return new PagingMap<>( ( Map<Object, Object> ) result, boundSql.getSql(), makeOrderedArgs( boundSql ) );
         }
 
         return result;
@@ -63,5 +62,33 @@ public class PagingInterceptor implements Interceptor {
 
     @Override
     public void setProperties( Properties properties ) {
+    }
+
+    private Object[] makeOrderedArgs( BoundSql boundSql ) {
+        List<ParameterMapping> mappings = boundSql.getParameterMappings();
+
+        if ( 0 == mappings.size() ) {
+            return new Object[ 0 ];
+
+        } else if ( 1 == mappings.size() ) {
+            return new Object[]{ boundSql.getParameterObject() };
+        }
+
+        Object unknownArgs = boundSql.getParameterObject();
+        MapperMethod.ParamMap<Object> args;
+
+        if ( unknownArgs instanceof MapperMethod.ParamMap ) {
+            args = ( MapperMethod.ParamMap<Object> ) unknownArgs;
+
+        } else {
+            throw new IllegalArgumentException( "" );
+        }
+
+        List<Object> orderedArgs = new ArrayList<>( mappings.size() );
+        for ( ParameterMapping item : mappings ) {
+            orderedArgs.add( args.get( item.getProperty() ) );
+        }
+
+        return orderedArgs.toArray();
     }
 }

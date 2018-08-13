@@ -1,10 +1,7 @@
 package top.itfinally.mybatis.paging.collection;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 /**
  * <pre>
@@ -21,8 +18,8 @@ import java.util.ListIterator;
 public class PagingList<E> extends AbstractPaging implements List<E> {
     private final List<E> originalList;
 
-    public PagingList( List<E> originalList, String sql ) {
-        super( sql );
+    public PagingList( List<E> originalList, String sql, Object[] orderedArgs ) {
+        super( sql, orderedArgs );
 
         this.originalList = originalList;
     }
@@ -140,5 +137,23 @@ public class PagingList<E> extends AbstractPaging implements List<E> {
     @Override
     public @Nonnull List<E> subList( int fromIndex, int toIndex ) {
         return originalList.subList( fromIndex, toIndex );
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( this == o ) return true;
+        if ( !( o instanceof PagingList ) ) return false;
+        PagingList<?> that = ( PagingList<?> ) o;
+        return Objects.equals( originalList, that.originalList );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( originalList );
+    }
+
+    @Override
+    public String toString() {
+        return originalList.toString();
     }
 }

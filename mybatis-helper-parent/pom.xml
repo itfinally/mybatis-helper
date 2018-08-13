@@ -31,7 +31,7 @@
     <mybatis-starter.version>1.3.2</mybatis-starter.version>
 
     <thymeleaf.version>3.0.9.RELEASE</thymeleaf.version>
-    <javax-persistence.version>2.2</javax-persistence.version>
+    <javax-persistence.version>1.0.2</javax-persistence.version>
     <javax-validation.version>2.0.1.Final</javax-validation.version>
     <thymeleaf-layout-dialect.version>2.2.0</thymeleaf-layout-dialect.version>
   </properties>
@@ -62,7 +62,7 @@
 
     <dependency>
       <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
+      <artifactId>persistence-api</artifactId>
       <version>${javax-persistence.version}</version>
     </dependency>
 

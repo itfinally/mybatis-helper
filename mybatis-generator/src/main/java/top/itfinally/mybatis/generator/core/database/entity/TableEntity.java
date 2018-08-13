@@ -24,14 +24,14 @@ public class TableEntity {
     // 数据库表的描述
     private String comment;
 
-    // 数据库表的主键
-    private ColumnEntity primaryKey;
-
     // 数据库表所有的行
     private List<ColumnEntity> columns;
 
     // java 实体依赖的所有对象的全限定名
     private Set<String> depends = new HashSet<>();
+
+    // 数据库表的主键
+    private List<ColumnEntity> primaryKeys = new ArrayList<>();
 
     // 数据库表所有的唯一键
     private List<UniqueKeyEntity> uniqueKeys = new ArrayList<>();
@@ -66,15 +66,6 @@ public class TableEntity {
         return this;
     }
 
-    public ColumnEntity getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public TableEntity setPrimaryKey( ColumnEntity primaryKey ) {
-        this.primaryKey = primaryKey;
-        return this;
-    }
-
     public List<ColumnEntity> getColumns() {
         return columns;
     }
@@ -90,6 +81,15 @@ public class TableEntity {
 
     public TableEntity addDepend( String depend ) {
         depends.add( depend );
+        return this;
+    }
+
+    public List<ColumnEntity> getPrimaryKeys() {
+        return primaryKeys;
+    }
+
+    public TableEntity addPrimaryKeys( ColumnEntity primaryKey ) {
+        primaryKeys.add( primaryKey );
         return this;
     }
 
@@ -128,16 +128,17 @@ public class TableEntity {
         return Objects.equals( getJdbcName(), that.getJdbcName() ) &&
                 Objects.equals( getJavaName(), that.getJavaName() ) &&
                 Objects.equals( getComment(), that.getComment() ) &&
-                Objects.equals( getPrimaryKey(), that.getPrimaryKey() ) &&
                 Objects.equals( getColumns(), that.getColumns() ) &&
+                Objects.equals( getDepends(), that.getDepends() ) &&
+                Objects.equals( getPrimaryKeys(), that.getPrimaryKeys() ) &&
                 Objects.equals( getUniqueKeys(), that.getUniqueKeys() ) &&
-                Objects.equals( getReferenceKeys(), that.getReferenceKeys() ) &&
-                Objects.equals( getDepends(), that.getDepends() );
+                Objects.equals( getReferenceKeys(), that.getReferenceKeys() );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash( getJdbcName(), getJavaName(), getComment(), getPrimaryKey(), getColumns(), getUniqueKeys(), getReferenceKeys(), getDepends() );
+        return Objects.hash( getJdbcName(), getJavaName(), getComment(), getColumns(), getDepends(),
+                getPrimaryKeys(), getUniqueKeys(), getReferenceKeys() );
     }
 
     @Override
@@ -146,11 +147,11 @@ public class TableEntity {
                 "jdbcName='" + jdbcName + '\'' +
                 ", javaName='" + javaName + '\'' +
                 ", comment='" + comment + '\'' +
-                ", primaryKey=" + primaryKey +
                 ", columns=" + columns +
+                ", depends=" + depends +
+                ", primaryKeys=" + primaryKeys +
                 ", uniqueKeys=" + uniqueKeys +
                 ", referenceKeys=" + referenceKeys +
-                ", depends=" + depends +
                 '}';
     }
 }

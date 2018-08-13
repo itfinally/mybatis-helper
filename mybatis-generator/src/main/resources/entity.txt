@@ -10,7 +10,7 @@ import [( ${depend} )];
 [/]
 @Table( name = "[( ${entity.jdbcName} )]"[# th:if="${not entity.uniqueKeys.isEmpty()}"], uniqueConstraints = {
 [# th:each="uniqueKey, iterator : ${entity.uniqueKeys}"]
-@UniqueConstraint( name = "[( ${uniqueKey.keyName} )]", columnNames = { [# th:each="column, subIterator : ${uniqueKey.columns}"]"[( ${column.jdbcName} )]"[# th:if="${subIterator.index + 1 < subIterator.size}"], [/][/] } )[# th:if="${iterator.index + 1 < iterator.size}"], [/]
+@UniqueConstraint( columnNames = { [# th:each="column, subIterator : ${uniqueKey.columns}"]"[( ${column.jdbcName} )]"[# th:if="${subIterator.index + 1 < subIterator.size}"], [/][/] } )[# th:if="${iterator.index + 1 < iterator.size}"], [/]
 [/]
 }[/] )
 public class [( ${item.className} )][# th:if="${properties.superEntity} != null"] extends [( ${item.superClass.simpleName} )][/] {
@@ -59,8 +59,8 @@ public class [( ${item.className} )][# th:if="${properties.superEntity} != null"
   @Override
   public String toString() {
     return "[( ${item.className} )]{" +
-            [# th:each="column : ${entity.columns}"]
-            "[( ${column.javaName} )]=[# th:if="${#strings.equals(column.javaType, 'String')}"]'[/]" + [( ${column.getterName} )]() + [# th:if="${#strings.equals(column.javaType, 'String')}"]'\'' +[/]
+            [# th:each="column, iterator : ${entity.columns}"]
+            "[# th:if="${iterator.index} > 0"], [/][( ${column.javaName} )]=[# th:if="${#strings.equals(column.javaType, 'String')}"]'[/]" + [( ${column.getterName} )]() + [# th:if="${#strings.equals(column.javaType, 'String')}"]'\'' +[/]
             [/]
             '}';
     }

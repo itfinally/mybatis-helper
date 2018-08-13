@@ -24,13 +24,13 @@ public class NamingConverter {
         isConvertToCamel = properties.isConvertToCamel();
     }
 
-    public String convert( String name ) {
-        return isConvertToCamel ? findUnderLineAndCaseIt( name ) : name;
+    public String convert( String name, boolean isFirstCharLower ) {
+        return isConvertToCamel ? findUnderLineAndCaseIt( name, isFirstCharLower ) : name;
     }
 
-    private String findUnderLineAndCaseIt( String name ) {
+    private String findUnderLineAndCaseIt( String name, boolean isFirstCharLower ) {
         String[] names = name.replaceAll( "^_", "" ).split( "_" );
-        for ( int index = names.length - 1; index > 0; index -= 1 ) {
+        for ( int index = names.length - 1, end = isFirstCharLower ? 1 : 0; index >= end; index -= 1 ) {
             names[ index ] = names[ index ].replaceAll( "^\\w", Character.toString( names[ index ].charAt( 0 ) ).toUpperCase() );
         }
 

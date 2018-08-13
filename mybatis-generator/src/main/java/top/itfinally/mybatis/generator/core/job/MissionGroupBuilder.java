@@ -62,6 +62,8 @@ public class MissionGroupBuilder {
                 extractSuperEntityProperty( table, group.getEntity() );
             }
 
+            // 构建当前实体的依赖
+            buildDepends( table );
             groups.add( group );
         }
 
@@ -179,7 +181,7 @@ public class MissionGroupBuilder {
     }
 
     private String buildXmlFilePath( TableEntity table ) {
-        return String.format( "%s%s%s.xml", properties.getResourcesPath(), File.separator, table.getJavaName() );
+        return String.format( "%s%s%sMapper.xml", properties.getResourcesPath(), File.separator, table.getJavaName() );
     }
 
     private static Class<?> loadClass( String className ) {
@@ -212,12 +214,15 @@ public class MissionGroupBuilder {
                 column.setHidden( true );
             }
         }
+    }
 
-        // 重设当前实体的依赖
-        table.getDepends().clear();
-
+    private void buildDepends( TableEntity table ) {
         Class<?> typeCls;
         for ( ColumnEntity item : table.getColumns() ) {
+            if ( item.isHidden() ) {
+                continue;
+            }
+
             typeCls = item.getJavaTypeClass();
 
             if ( typeCls.isPrimitive() ) {

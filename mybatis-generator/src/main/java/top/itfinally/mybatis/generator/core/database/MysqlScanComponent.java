@@ -58,22 +58,24 @@ public class MysqlScanComponent extends DatabaseScanComponent {
                 .setJdbcName( ( tableMetadata.get( "TABLE_NAME" ) ).toLowerCase() )
                 .setComment( StringUtils.isEmpty( tableMetadata.get( "TABLE_COMMENT" ) ) ? "" : ( tableMetadata.get( "TABLE_COMMENT" ) ).toLowerCase() );
 
-        if ( null == namingMapping ) {
-            logger.warn( "There are no naming mapping to offer, convert underline-case to camel-case by default." );
-
-            table.setJavaName( namingConverter.convert( table.getJdbcName() ).replaceAll( "^\\w",
-                    Character.toString( table.getJdbcName().charAt( 0 ) ).toUpperCase() ) );
-
-        } else {
-            String javaName = namingMapping.getMapping( table.getJdbcName() );
-            if ( StringUtils.isEmpty( javaName ) ) {
-                throw new UnknownNameMappingException( String.format( "No mapping found for table '%s'", table.getJdbcName() ) );
-            }
-
-            table.setJavaName( javaName );
+        String javaName = null;
+        if ( namingMapping != null ) {
+            javaName = namingMapping.getMapping( table.getJdbcName() );
         }
 
-        return table;
+        if ( null == namingMapping || table.getJdbcName().equals( javaName ) ) {
+            logger.warn( String.format( "There are no naming mapping to offer, convert underline-case to camel-case by default. " +
+                    "target table: %s", table.getJdbcName() ) );
+
+            return table.setJavaName( namingConverter.convert( table.getJdbcName(), false ).replaceAll( "^\\w",
+                    Character.toString( table.getJdbcName().charAt( 0 ) ).toUpperCase() ) );
+        }
+
+        if ( StringUtils.isEmpty( javaName ) ) {
+            throw new UnknownNameMappingException( String.format( "No mapping found for table '%s'", table.getJdbcName() ) );
+        }
+
+        return table.setJavaName( javaName );
     }
 
     private TableEntity extractColumnsInfo( TableEntity table ) {
@@ -90,7 +92,7 @@ public class MysqlScanComponent extends DatabaseScanComponent {
                     .setJdbcName( item.get( "COLUMN_NAME" ).toLowerCase() )
                     .setNotNull( "no".equalsIgnoreCase( item.get( "IS_NULLABLE" ) ) )
                     .setPrimaryKey( "pri".equalsIgnoreCase( item.get( "COLUMN_KEY" ) ) )
-                    .setJavaName( namingConverter.convert( ( item.get( "COLUMN_NAME" ) ).toLowerCase() ) );
+                    .setJavaName( namingConverter.convert( ( item.get( "COLUMN_NAME" ) ).toLowerCase(), true ) );
 
             typeMapping = Builder.initTypeMapping( column );
             type = PrimitiveType.getType( typeMapping.getJavaType() );
@@ -98,7 +100,10 @@ public class MysqlScanComponent extends DatabaseScanComponent {
             buildGS( column.setJavaTypeClass( typeMapping.getJavaType() )
                     .setJavaType( null == type ? typeMapping.getJavaType().getSimpleName() : type.getSimpleName() ) );
 
-            table.setPrimaryKey( column );
+            if ( column.isPrimaryKey() ) {
+                table.addPrimaryKeys( column );
+            }
+
             columnList.add( column );
         }
 

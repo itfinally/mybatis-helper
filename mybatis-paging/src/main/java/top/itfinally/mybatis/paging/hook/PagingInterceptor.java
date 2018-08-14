@@ -1,6 +1,8 @@
-package top.itfinally.mybatis.paging;
+package top.itfinally.mybatis.paging.hook;
 
+import com.google.common.base.Joiner;
 import org.apache.ibatis.binding.MapperMethod;
+import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -35,9 +37,13 @@ public class PagingInterceptor implements Interceptor {
     public Object intercept( Invocation invocation ) throws Throwable {
         Object[] thisArgs = invocation.getArgs();
         MappedStatement mappedStatement = ( MappedStatement ) thisArgs[ 0 ];
-        Object unknownArgs = invocation.getArgs()[ 1 ];
+        Object unknownArgs = thisArgs[ 1 ];
 
         BoundSql boundSql = mappedStatement.getBoundSql( unknownArgs );
+        boundSql = new BoundSql( mappedStatement.getConfiguration(), boundSql.getSql(),
+                boundSql.getParameterMappings(), boundSql.getParameterObject() );
+
+        thisArgs[ 0 ] = copyMappedStatement( mappedStatement, boundSql );
         Object result = invocation.proceed();
 
         if ( result instanceof List ) {
@@ -90,5 +96,47 @@ public class PagingInterceptor implements Interceptor {
         }
 
         return orderedArgs.toArray();
+    }
+
+    private MappedStatement copyMappedStatement( MappedStatement mappedStatement, BoundSql boundSql ) {
+        StaticSqlSource sqlSource = new StaticSqlSource( mappedStatement.getConfiguration(), boundSql.getSql(), boundSql.getParameterMappings() );
+        MappedStatement.Builder builder = new MappedStatement.Builder( mappedStatement.getConfiguration(),
+                mappedStatement.getId(), sqlSource, mappedStatement.getSqlCommandType() );
+
+        if ( mappedStatement.getKeyColumns() != null && mappedStatement.getKeyColumns().length > 0 ) {
+            builder.keyColumn( Joiner.on( "," ).join( mappedStatement.getKeyColumns() ) );
+        }
+
+        if ( mappedStatement.getKeyProperties() != null && mappedStatement.getKeyProperties().length > 0 ) {
+            builder.keyProperty( Joiner.on( "," ).join( mappedStatement.getKeyProperties() ) );
+        }
+
+        if ( mappedStatement.getResultSets() != null && mappedStatement.getResultSets().length > 0 ) {
+            builder.resultSets( Joiner.on( "," ).join( mappedStatement.getResultSets() ) );
+        }
+
+        return builder.cache( mappedStatement.getCache() )
+                .fetchSize( mappedStatement.getFetchSize() )
+                .databaseId( mappedStatement.getDatabaseId() )
+                .keyGenerator( mappedStatement.getKeyGenerator() )
+                .flushCacheRequired( mappedStatement.isFlushCacheRequired() )
+
+                .lang( mappedStatement.getLang() )
+                .timeout( mappedStatement.getTimeout() )
+                .useCache( mappedStatement.isUseCache() )
+                .resource( mappedStatement.getResource() )
+                .resultMaps( mappedStatement.getResultMaps() )
+
+                .parameterMap( mappedStatement.getParameterMap() )
+                .resultOrdered( mappedStatement.isResultOrdered() )
+                .resultSetType( mappedStatement.getResultSetType() )
+                .statementType( mappedStatement.getStatementType() )
+
+                .build();
+    }
+
+    private SqlHook getSqlHook(  ) {
+//        new MySqlHook( boundSql.getSql(), 1, 10 );
+        return null;
     }
 }

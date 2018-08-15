@@ -4,16 +4,12 @@ import com.google.common.collect.Lists;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.NotExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
-import net.sf.jsqlparser.util.SelectUtils;
 
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************
@@ -26,7 +22,7 @@ public class MySqlHook implements SqlHook {
     private final String pagingSql;
     private final String countingSql;
 
-    MySqlHook( String originSql, long beginRow, long range ) throws JSQLParserException {
+    public MySqlHook( String originSql, long beginRow, long range ) throws JSQLParserException {
         Select select = ( Select ) CCJSqlParserUtil.parse( originSql );
         PlainSelect selectBody = ( PlainSelect ) select.getSelectBody();
 

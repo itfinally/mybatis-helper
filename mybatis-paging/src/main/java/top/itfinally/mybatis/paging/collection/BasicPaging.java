@@ -3,7 +3,6 @@ package top.itfinally.mybatis.paging.collection;
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************
@@ -13,7 +12,9 @@ package top.itfinally.mybatis.paging.collection;
  * </pre>
  */
 public interface BasicPaging {
-    long getPage();
+    long getCurrentPage();
 
     long getCount();
+
+    long getPage();
 }

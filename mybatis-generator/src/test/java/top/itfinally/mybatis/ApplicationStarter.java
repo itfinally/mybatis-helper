@@ -9,12 +9,10 @@ import top.itfinally.mybatis.generator.core.job.MissionGroupBuilder;
 import top.itfinally.mybatis.generator.MybatisGeneratorRunner;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************

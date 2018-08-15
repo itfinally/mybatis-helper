@@ -3,12 +3,9 @@ package top.itfinally.mybatis.generator.configuration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import javax.sql.DataSource;
-
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************

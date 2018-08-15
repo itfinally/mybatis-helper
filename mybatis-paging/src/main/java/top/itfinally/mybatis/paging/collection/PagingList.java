@@ -1,12 +1,14 @@
 package top.itfinally.mybatis.paging.collection;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import top.itfinally.mybatis.paging.PagingItem;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************
@@ -18,8 +20,8 @@ import java.util.*;
 public class PagingList<E> extends AbstractPaging implements List<E> {
     private final List<E> originalList;
 
-    public PagingList( List<E> originalList, String sql, Object[] orderedArgs ) {
-        super( sql, orderedArgs );
+    public PagingList( List<E> originalList, PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
+        super( pagingItem, sql, orderedArgs, jdbcTemplate );
 
         this.originalList = originalList;
     }

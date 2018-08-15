@@ -1,5 +1,8 @@
 package top.itfinally.mybatis.paging.collection;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import top.itfinally.mybatis.paging.PagingItem;
+
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
@@ -9,7 +12,6 @@ import java.util.Set;
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************
@@ -21,8 +23,8 @@ import java.util.Set;
 public class PagingMap<K, V> extends AbstractPaging implements Map<K, V> {
     private final Map<K, V> originalMap;
 
-    public PagingMap( Map<K, V> originalMap, String sql, Object[] orderedArgs ) {
-        super( sql, orderedArgs );
+    public PagingMap( Map<K, V> originalMap, PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
+        super( pagingItem, sql, orderedArgs, jdbcTemplate );
 
         this.originalMap = originalMap;
     }

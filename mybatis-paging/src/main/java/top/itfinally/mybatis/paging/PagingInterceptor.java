@@ -1,6 +1,7 @@
-package top.itfinally.mybatis.paging.hook;
+package top.itfinally.mybatis.paging;
 
 import com.google.common.base.Joiner;
+import net.sf.jsqlparser.JSQLParserException;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.executor.Executor;
@@ -10,16 +11,21 @@ import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+import org.springframework.jdbc.core.JdbcTemplate;
 import top.itfinally.mybatis.paging.collection.PagingList;
 import top.itfinally.mybatis.paging.collection.PagingMap;
 import top.itfinally.mybatis.paging.collection.PagingSet;
+import top.itfinally.mybatis.paging.hook.MySqlHook;
+import top.itfinally.mybatis.paging.hook.SqlHook;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************
@@ -32,30 +38,54 @@ import java.util.*;
 @Intercepts( @Signature( type = Executor.class, method = "query",
         args = { MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class } ) )
 public class PagingInterceptor implements Interceptor {
+    private final String databaseId;
+    private final JdbcTemplate jdbcTemplate;
+
+    public PagingInterceptor( DataSource dataSource ) {
+        try ( Connection connection = dataSource.getConnection() ) {
+            databaseId = connection.getMetaData().getDatabaseProductName().toLowerCase();
+            jdbcTemplate = new JdbcTemplate( dataSource );
+
+        } catch ( SQLException e ) {
+            throw new RuntimeException( "Cannot getting database name.", e );
+        }
+    }
 
     @Override
     public Object intercept( Invocation invocation ) throws Throwable {
+        PagingItem pagingItem = PagingExecutor.getPagingItem();
+
+        if ( null == pagingItem ) {
+            return invocation.proceed();
+        }
+
+        if ( !pagingItem.isHolding() ) {
+            PagingExecutor.clear();
+        }
+
         Object[] thisArgs = invocation.getArgs();
         MappedStatement mappedStatement = ( MappedStatement ) thisArgs[ 0 ];
         Object unknownArgs = thisArgs[ 1 ];
 
         BoundSql boundSql = mappedStatement.getBoundSql( unknownArgs );
-        boundSql = new BoundSql( mappedStatement.getConfiguration(), boundSql.getSql(),
+        SqlHook sqlHook = getSqlHook( boundSql.getSql(), pagingItem );
+
+        boundSql = new BoundSql( mappedStatement.getConfiguration(), sqlHook.getPagingSql(),
                 boundSql.getParameterMappings(), boundSql.getParameterObject() );
 
         thisArgs[ 0 ] = copyMappedStatement( mappedStatement, boundSql );
         Object result = invocation.proceed();
 
         if ( result instanceof List ) {
-            return new PagingList<>( ( List<Object> ) result, boundSql.getSql(), makeOrderedArgs( boundSql ) );
+            return new PagingList<>( ( List<Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
         }
 
         if ( result instanceof Set ) {
-            return new PagingSet<>( ( Set<Object> ) result, boundSql.getSql(), makeOrderedArgs( boundSql ) );
+            return new PagingSet<>( ( Set<Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
         }
 
         if ( result instanceof Map ) {
-            return new PagingMap<>( ( Map<Object, Object> ) result, boundSql.getSql(), makeOrderedArgs( boundSql ) );
+            return new PagingMap<>( ( Map<Object, Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
         }
 
         return result;
@@ -73,11 +103,8 @@ public class PagingInterceptor implements Interceptor {
     private Object[] makeOrderedArgs( BoundSql boundSql ) {
         List<ParameterMapping> mappings = boundSql.getParameterMappings();
 
-        if ( 0 == mappings.size() ) {
+        if ( mappings.isEmpty() ) {
             return new Object[ 0 ];
-
-        } else if ( 1 == mappings.size() ) {
-            return new Object[]{ boundSql.getParameterObject() };
         }
 
         Object unknownArgs = boundSql.getParameterObject();
@@ -87,7 +114,8 @@ public class PagingInterceptor implements Interceptor {
             args = ( MapperMethod.ParamMap<Object> ) unknownArgs;
 
         } else {
-            throw new IllegalArgumentException( "" );
+            throw new IllegalArgumentException( String.format( "Mybatis given unexpected parameters from boundSql.getParameterObject(), " +
+                    "type: %s", unknownArgs.getClass().getName() ) );
         }
 
         List<Object> orderedArgs = new ArrayList<>( mappings.size() );
@@ -135,8 +163,20 @@ public class PagingInterceptor implements Interceptor {
                 .build();
     }
 
-    private SqlHook getSqlHook(  ) {
-//        new MySqlHook( boundSql.getSql(), 1, 10 );
-        return null;
+    private SqlHook getSqlHook( String sql, PagingItem pagingItem ) {
+        try {
+            switch ( databaseId ) {
+                case "mysql": {
+                    return new MySqlHook( sql, pagingItem.getBeginRow(), pagingItem.getRange() );
+                }
+
+                default: {
+                    throw new UnsupportedOperationException( String.format( "Unsupported database '%s'", databaseId ) );
+                }
+            }
+
+        } catch ( JSQLParserException e ) {
+            throw new IllegalStateException( String.format( "Failure to parse sql, SQL: %s", sql ), e );
+        }
     }
 }

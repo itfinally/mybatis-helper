@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 /**
  * <pre>
  * *********************************************
- * Copyright BAIBU.
  * All rights reserved.
  * Description: ${类文件描述}
  * *********************************************

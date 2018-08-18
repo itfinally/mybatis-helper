@@ -1,5 +1,7 @@
 package top.itfinally.mybatis.paging;
 
+import top.itfinally.mybatis.paging.interceptor.PagingLocal;
+
 /**
  * <pre>
  * *********************************************
@@ -11,8 +13,16 @@ package top.itfinally.mybatis.paging;
  * *********************************************
  * </pre>
  */
-public class PagingExecutor {
+public final class Pager extends PagingLocal {
     private static final ThreadLocal<PagingItem> pagingLocal = new ThreadLocal<>();
+
+    static {
+        // 最终逃逸到 PagingInterceptor
+        setPagingLocal( pagingLocal );
+    }
+
+    private Pager() {
+    }
 
     public static void pagingAsPage( long page, long range ) {
         if ( page < 0 ) {
@@ -23,7 +33,7 @@ public class PagingExecutor {
             throw new IllegalArgumentException( "Range must greater than zero." );
         }
 
-        pagingAsRow( page * range, range, false );
+        pagingAsRow( getPage( page ) * range, range, false );
     }
 
     public static void pagingAsPage( long page, long range, boolean holding ) {
@@ -35,7 +45,7 @@ public class PagingExecutor {
             throw new IllegalArgumentException( "Range must greater than zero." );
         }
 
-        pagingAsRow( page * range, range, holding );
+        pagingAsRow( getPage( page ) * range, range, holding );
     }
 
     public static void pagingAsRow( long beginRow, long range ) {
@@ -66,7 +76,7 @@ public class PagingExecutor {
         pagingLocal.remove();
     }
 
-    static PagingItem getPagingItem() {
-        return pagingLocal.get();
+    private static long getPage( long page ) {
+        return page < 0 ? 0 : page - getIndexStartingWith() < 0 ? 0 : page - getIndexStartingWith();
     }
 }

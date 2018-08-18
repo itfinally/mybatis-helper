@@ -1,4 +1,4 @@
-package top.itfinally.mybatis.paging.hook;
+package top.itfinally.mybatis.paging.interceptor.hook;
 
 /**
  * <pre>

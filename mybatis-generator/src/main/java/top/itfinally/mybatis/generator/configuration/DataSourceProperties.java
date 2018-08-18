@@ -24,8 +24,6 @@ public class DataSourceProperties {
 
     private String password;
 
-    private String databaseId;
-
     public String getUrl() {
         return url;
     }

@@ -20,7 +20,7 @@ public abstract class AbstractPaging implements BasicPaging {
     private final PagingItem pagingItem;
 
     private volatile JdbcTemplate jdbcTemplate;
-    private volatile double count;
+    private volatile long count;
 
     AbstractPaging( PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
         this.sql = sql;
@@ -48,13 +48,13 @@ public abstract class AbstractPaging implements BasicPaging {
     @Override
     public final long getPage() {
         counting();
-        return ( long ) Math.ceil( count / pagingItem.getRange() );
+        return count / pagingItem.getRange();
     }
 
     @Override
     public final long getCount() {
         counting();
-        return ( long ) count;
+        return count;
     }
 
     @Override

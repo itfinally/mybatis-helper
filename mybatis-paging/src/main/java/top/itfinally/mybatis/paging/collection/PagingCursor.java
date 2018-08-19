@@ -7,6 +7,7 @@ import top.itfinally.mybatis.paging.PagingItem;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * <pre>
@@ -22,8 +23,9 @@ import java.util.Iterator;
 public class PagingCursor<T> extends AbstractPaging implements Cursor<T> {
     private final Cursor<T> cursor;
 
-    public PagingCursor( Cursor<T> cursor, PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
-        super( pagingItem, sql, orderedArgs, jdbcTemplate );
+    public PagingCursor( Cursor<T> cursor, PagingItem pagingItem, List<String> countingSql,
+                         Object[] orderedArgs, JdbcTemplate jdbcTemplate, int indexStartingWith ) {
+        super( pagingItem, countingSql, orderedArgs, jdbcTemplate, indexStartingWith );
 
         this.cursor = cursor;
     }

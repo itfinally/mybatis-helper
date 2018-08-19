@@ -4,10 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import top.itfinally.mybatis.paging.PagingItem;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <pre>
@@ -23,8 +20,9 @@ import java.util.Set;
 public class PagingSet<E> extends AbstractPaging implements Set<E> {
     private final Set<E> originalSet;
 
-    public PagingSet( Set<E> originalSet, PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
-        super( pagingItem, sql, orderedArgs, jdbcTemplate );
+    public PagingSet( Set<E> originalSet, PagingItem pagingItem, List<String> countingSql,
+                      Object[] orderedArgs, JdbcTemplate jdbcTemplate, int indexStartingWith ) {
+        super( pagingItem, countingSql, orderedArgs, jdbcTemplate, indexStartingWith );
 
         this.originalSet = originalSet;
     }

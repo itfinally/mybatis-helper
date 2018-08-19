@@ -86,19 +86,23 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
         Object result = invocation.proceed();
 
         if ( result instanceof List ) {
-            return new PagingList<>( ( List<Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
+            return new PagingList<>( ( List<Object> ) result, pagingItem, sqlHook.getCountingSql(),
+                    makeOrderedArgs( boundSql ), jdbcTemplate, properties.getIndexStartingWith() );
         }
 
         if ( result instanceof Set ) {
-            return new PagingSet<>( ( Set<Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
+            return new PagingSet<>( ( Set<Object> ) result, pagingItem, sqlHook.getCountingSql(),
+                    makeOrderedArgs( boundSql ), jdbcTemplate, properties.getIndexStartingWith() );
         }
 
         if ( result instanceof Map ) {
-            return new PagingMap<>( ( Map<Object, Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
+            return new PagingMap<>( ( Map<Object, Object> ) result, pagingItem, sqlHook.getCountingSql(),
+                    makeOrderedArgs( boundSql ), jdbcTemplate, properties.getIndexStartingWith() );
         }
 
         if ( result instanceof Cursor ) {
-            return new PagingCursor<>( ( Cursor<Object> ) result, pagingItem, sqlHook.getCountingSql(), makeOrderedArgs( boundSql ), jdbcTemplate );
+            return new PagingCursor<>( ( Cursor<Object> ) result, pagingItem, sqlHook.getCountingSql(),
+                    makeOrderedArgs( boundSql ), jdbcTemplate, properties.getIndexStartingWith() );
         }
 
         return result;
@@ -177,14 +181,19 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
     }
 
     private SqlHook getSqlHook( String sql, PagingItem pagingItem ) {
-        if ( properties != null && properties.getSqlHookMap().containsKey( sql.toLowerCase() ) ) {
-            return properties.getSqlHookMap().get( sql.toLowerCase() );
-        }
-
         try {
+            if ( properties != null && properties.getSqlHookMap().containsKey( sql.toLowerCase() ) ) {
+                SqlHook sqlHook = properties.getSqlHookMap().get( sql.toLowerCase() )
+                        .build( sql, pagingItem.getBeginRow(), pagingItem.getRange() );
+
+                if ( sqlHook != null ) {
+                    return sqlHook;
+                }
+            }
+
             switch ( databaseId ) {
                 case "mysql": {
-                    return new MySqlHook( sql, pagingItem.getBeginRow(), pagingItem.getRange() );
+                    return new MySqlHook.Builder().build( sql, pagingItem.getBeginRow(), pagingItem.getRange() );
                 }
 
                 default: {

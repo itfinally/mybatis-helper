@@ -7,7 +7,7 @@
 ```xml
 <dependency>
   <groupId>top.itfinally</groupId>
-  <artifactId>mybatis-helper-parent</artifactId>
+  <artifactId>mybatis-generator-spring-boot-starter</artifactId>
   <version>1.0.0.RELEASE</version>
 </dependency>
 ```

@@ -1,6 +1,6 @@
 package top.itfinally.mybatis.paging.configuration;
 
-import top.itfinally.mybatis.paging.interceptor.hook.SqlHook;
+import top.itfinally.mybatis.paging.interceptor.hook.SqlHookBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,15 +21,15 @@ public class MybatisPagingProperties {
     public static final String MYSQL = "mysql";
     public static final String ORACLE = "oracle";
 
-    private final Map<String, SqlHook> sqlHookMap = new HashMap<>();
+    private final Map<String, SqlHookBuilder> sqlHookMap = new HashMap<>();
     private int indexStartingWith;
 
-    public MybatisPagingProperties addSqlHook( String databaseId, SqlHook sqlHook ) {
-        sqlHookMap.put( databaseId.toLowerCase(), sqlHook );
+    public MybatisPagingProperties addSqlHook( String databaseId, SqlHookBuilder sqlHookBuilder ) {
+        sqlHookMap.put( databaseId.toLowerCase(), sqlHookBuilder );
         return this;
     }
 
-    public Map<String, SqlHook> getSqlHookMap() {
+    public Map<String, SqlHookBuilder> getSqlHookMap() {
         return Collections.unmodifiableMap( sqlHookMap );
     }
 

@@ -15,7 +15,6 @@ public class JobUnit {
     private String className;
     private String writePath;
     private String packageName;
-    private String templatePath;
     private Class<?> superClass;
 
     // 输出文件时, 对应的文件存在多个空白行时会被合并成 blankLine 行
@@ -48,15 +47,6 @@ public class JobUnit {
         return this;
     }
 
-    public String getTemplatePath() {
-        return templatePath;
-    }
-
-    public JobUnit setTemplatePath( String templatePath ) {
-        this.templatePath = templatePath;
-        return this;
-    }
-
     public Class<?> getSuperClass() {
         return superClass;
     }
@@ -81,7 +71,6 @@ public class JobUnit {
                 "className='" + className + '\'' +
                 ", writePath='" + writePath + '\'' +
                 ", packageName='" + packageName + '\'' +
-                ", templatePath='" + templatePath + '\'' +
                 ", superClass=" + superClass +
                 ", blankLine=" + blankLine +
                 '}';

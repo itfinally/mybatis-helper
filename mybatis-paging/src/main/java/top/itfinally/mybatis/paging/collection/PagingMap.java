@@ -4,10 +4,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import top.itfinally.mybatis.paging.PagingItem;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <pre>
@@ -23,8 +20,9 @@ import java.util.Set;
 public class PagingMap<K, V> extends AbstractPaging implements Map<K, V> {
     private final Map<K, V> originalMap;
 
-    public PagingMap( Map<K, V> originalMap, PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
-        super( pagingItem, sql, orderedArgs, jdbcTemplate );
+    public PagingMap( Map<K, V> originalMap, PagingItem pagingItem, List<String> countingSql,
+                      Object[] orderedArgs, JdbcTemplate jdbcTemplate, int indexStartingWith ) {
+        super( pagingItem, countingSql, orderedArgs, jdbcTemplate, indexStartingWith );
 
         this.originalMap = originalMap;
     }

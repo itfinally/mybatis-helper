@@ -29,9 +29,6 @@ public class MybatisGeneratorProperties {
     // 生成 mapper.xml 文件的路径
     private String resourcesPath;
 
-    // 自定义模板的基础路径
-    private String templateBasicPath;
-
     // 基础包路径, 如 aaa.bbb.ccc
     private String basicPackage;
 
@@ -76,6 +73,9 @@ public class MybatisGeneratorProperties {
     // 父类实体
     private String superEntity;
 
+    // 父类 mapper
+    private String superRepository;
+
     // 父类 services
     private String superServices;
 
@@ -84,9 +84,6 @@ public class MybatisGeneratorProperties {
 
     // 父类 controller
     private String superController;
-
-    // 父类 mapper
-    private String superRepository;
 
     // 是否要转换为驼峰命名, true 为转换
     private boolean convertToCamel = true;
@@ -108,10 +105,6 @@ public class MybatisGeneratorProperties {
         }
 
         return mixPath( this.resourcesPath );
-    }
-
-    public String getTemplateBasicPath() {
-        return templateBasicPath;
     }
 
     public String getBasicPackage() {
@@ -300,11 +293,6 @@ public class MybatisGeneratorProperties {
 
     public MybatisGeneratorProperties setResourcesPath( String resourcesPath ) {
         this.resourcesPath = resourcesPath;
-        return this;
-    }
-
-    public MybatisGeneratorProperties setTemplateBasicPath( String templateBasicPath ) {
-        this.templateBasicPath = templateBasicPath;
         return this;
     }
 

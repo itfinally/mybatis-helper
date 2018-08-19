@@ -20,8 +20,9 @@ import java.util.*;
 public class PagingList<E> extends AbstractPaging implements List<E> {
     private final List<E> originalList;
 
-    public PagingList( List<E> originalList, PagingItem pagingItem, String sql, Object[] orderedArgs, JdbcTemplate jdbcTemplate ) {
-        super( pagingItem, sql, orderedArgs, jdbcTemplate );
+    public PagingList( List<E> originalList, PagingItem pagingItem, List<String> countingSql,
+                       Object[] orderedArgs, JdbcTemplate jdbcTemplate, int indexStartingWith ) {
+        super( pagingItem, countingSql, orderedArgs, jdbcTemplate, indexStartingWith );
 
         this.originalList = originalList;
     }

@@ -5,7 +5,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import top.itfinally.mybatis.paging.PagingItem;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

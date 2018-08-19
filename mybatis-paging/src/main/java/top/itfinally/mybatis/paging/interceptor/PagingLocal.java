@@ -1,7 +1,6 @@
 package top.itfinally.mybatis.paging.interceptor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import top.itfinally.mybatis.paging.PagingItem;
 import top.itfinally.mybatis.paging.configuration.MybatisPagingProperties;

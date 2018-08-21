@@ -2,6 +2,7 @@ package top.itfinally.mybatis.paging.configuration;
 
 import top.itfinally.mybatis.paging.interceptor.hook.SqlHookBuilder;
 
+import javax.sql.DataSource;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,8 @@ public class MybatisPagingProperties {
     public static final String MYSQL = "mysql";
     public static final String ORACLE = "oracle";
 
-    private final Map<String, SqlHookBuilder> sqlHookMap = new HashMap<>();
+    private Map<String, SqlHookBuilder> sqlHookMap = new HashMap<>();
+    private DataSource dataSource;
     private int indexStartingWith;
 
     public MybatisPagingProperties addSqlHook( String databaseId, SqlHookBuilder sqlHookBuilder ) {
@@ -31,6 +33,15 @@ public class MybatisPagingProperties {
 
     public Map<String, SqlHookBuilder> getSqlHookMap() {
         return Collections.unmodifiableMap( sqlHookMap );
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public MybatisPagingProperties setDataSource( DataSource dataSource ) {
+        this.dataSource = dataSource;
+        return this;
     }
 
     public int getIndexStartingWith() {

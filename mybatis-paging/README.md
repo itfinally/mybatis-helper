@@ -31,7 +31,7 @@ try ( Pager pager = Pager.getInstance() ) {
 }
 ```
 
-注: 当发生异常时, 除 main 线程以外( main 线程异常等同于程序退出, 并且该线城是由 jvm 管理 ), 其余线程均会自动清理 ThreadLocal 的参数, 因此不需要关心该参数是否会影响下次查询。( 即使没有使用 try-with-resources 亦是如此 )
+注: 当发生异常时, 除 main 线程以外( main 线程异常等同于程序退出, 并且该线程是由 jvm 管理 ), 其余线程均会自动清理 ThreadLocal 的参数, 因此不需要关心该参数是否会影响下次查询。( 即使没有使用 try-with-resources 亦是如此 )
 
 
 ### 配置
@@ -98,4 +98,10 @@ public interface SqlHookBuilder {
 ```
 
 留意 `List<String> getCountingSql()`, 这里返回多个统计用的 Sql, 是因为 Sql 语句有可能出现 except, minus, intersect, union, union all 等多个子句合并的 Sql 语句, 在自己的 Hook 实现内可以根据不同的集合运算语义进行 Sql 拆分并执行数据统计, 最后再进行汇总, 分页插件使用这种设计尽可能将附带 Sql 对程序执行时间的影响降至最低。
+
+##### 多数据源
+
+分页插件支持多数据源, 但必须通过手动配置 `MybatisPagingProperties.setDataSource( DataSource dataSource )`, 并且必须与 mybatis 使用的数据源保持一致, 确保分页查询与分页 Sql 是在同一个( 或相似环境的 )数据库执行。
+
+注: 单数据源时无需配置, 会自动注入
 

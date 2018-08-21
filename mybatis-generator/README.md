@@ -127,7 +127,7 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 
 ##### 外置模版路径
 
-thymeleaf 是使用 `ClassLoader.getResourceAsStream` 获取文件, 因此外部定义的模版需要放在 resources 文件夹内, 另外生成器使用 thymeleaf 的 TEXT 模式进行模版渲染, 如需要自定义模版需要学习 []()
+thymeleaf 是使用 `ClassLoader.getResourceAsStream` 获取文件, 因此外部定义的模版需要放在 resources 文件夹内, 另外生成器使用 thymeleaf 的 TEXT 模式进行模版渲染, 如需要自定义模版需要学习 [Textual template modes](https://www.thymeleaf.org/doc/tutorials/3.0/usingthymeleaf.html#textual-template-modes)
 
 注: 如需要在默认模版的基础上修改, 到 jar 包内( top.itfinally.mybatis-generator ) 的项目根目录上复制对应的模版进行修改。
 

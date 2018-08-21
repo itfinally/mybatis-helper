@@ -8,9 +8,11 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Signature;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * <pre>
@@ -23,14 +25,15 @@ import javax.sql.DataSource;
  * *********************************************
  * </pre>
  */
+@Order
 @Component
 @SuppressWarnings( "unchecked" )
 @Intercepts( @Signature( type = Executor.class, method = "query", args = { MappedStatement.class, Object.class,
         RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class } ) )
 public class CacheQueryInterceptor extends AbstractPagingInterceptor {
 
-    public CacheQueryInterceptor( DataSource dataSource ) {
-        super( dataSource );
+    public CacheQueryInterceptor( List<DataSource> dataSources ) {
+        super( dataSources );
     }
 
     @Override

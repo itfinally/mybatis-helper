@@ -6,9 +6,11 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * <pre>
@@ -21,6 +23,7 @@ import javax.sql.DataSource;
  * *********************************************
  * </pre>
  */
+@Order
 @Component
 @SuppressWarnings( "unchecked" )
 @Intercepts( {
@@ -29,8 +32,8 @@ import javax.sql.DataSource;
 } )
 public class BasicQueryInterceptor extends AbstractPagingInterceptor {
 
-    public BasicQueryInterceptor( DataSource dataSource ) {
-        super( dataSource );
+    public BasicQueryInterceptor( List<DataSource> dataSources ) {
+        super( dataSources );
     }
 
     @Override

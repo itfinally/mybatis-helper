@@ -11,6 +11,7 @@ import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import top.itfinally.mybatis.paging.Pager;
@@ -47,7 +48,23 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
     @Autowired( required = false )
     private MybatisPagingProperties properties;
 
-    AbstractPagingInterceptor( DataSource dataSource ) {
+    AbstractPagingInterceptor( List<DataSource> dataSources ) {
+        DataSource dataSource;
+
+        if ( dataSources.isEmpty() ) {
+            throw new BeanCreationException( "Error to creating bean with class 'AbstractPagingInterceptor', No dataSource injected." );
+
+        } else if ( dataSources.size() == 1 ) {
+            dataSource = dataSources.get( 0 );
+
+        } else {
+            dataSource = properties.getDataSource();
+
+            if ( null == dataSource ) {
+                throw new BeanCreationException( "Error to creating bean with class 'AbstractPagingInterceptor', there are have more than one dataSource and no specified." );
+            }
+        }
+
         try ( Connection connection = dataSource.getConnection() ) {
             databaseId = connection.getMetaData().getDatabaseProductName().toLowerCase();
             jdbcTemplate = new JdbcTemplate( dataSource );

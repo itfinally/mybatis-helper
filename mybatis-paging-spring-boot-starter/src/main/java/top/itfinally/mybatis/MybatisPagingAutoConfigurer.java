@@ -40,6 +40,7 @@ public class MybatisPagingAutoConfigurer implements ApplicationListener<ContextR
             for ( SqlSessionFactory factory : sqlSessionFactories ) {
                 for ( AbstractPagingInterceptor interceptor : interceptors ) {
                     factory.getConfiguration().addInterceptor( interceptor );
+                    factory.getConfiguration().getInterceptors().clear();;
                 }
             }
         }

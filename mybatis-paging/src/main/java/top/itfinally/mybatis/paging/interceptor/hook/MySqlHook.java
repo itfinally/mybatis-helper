@@ -24,6 +24,7 @@ import java.util.List;
  *
  * MySQL 不支持 with .. as .. , except, minus, intersect 等子句
  * 通过 SetOperationList 处理 MySQL 的 union 和 union all
+ *
  * </pre>
  */
 public class MySqlHook implements SqlHook {
@@ -37,7 +38,7 @@ public class MySqlHook implements SqlHook {
         limit.setRowCount( new LongValue( range ) );
         limit.setOffset( new LongValue( beginRow ) );
 
-        logger.debug( "Ready to " );
+        logger.debug( "Ready to build paging and counting sql." );
 
         ( ( Select ) CCJSqlParserUtil.parse( originSql ) ).getSelectBody().accept( new SelectVisitor() {
             @Override
@@ -45,20 +46,27 @@ public class MySqlHook implements SqlHook {
                 plainSelect.setLimit( limit );
                 pagingSql = plainSelect.toString();
 
+                logger.debug( "Build paging sql: {}", pagingSql );
+
                 plainSelect.setLimit( null );
                 plainSelect.getSelectItems().clear();
                 plainSelect.setSelectItems( createCountFunction() );
 
                 countingSql.add( plainSelect.toString() );
+
+                logger.debug( "Build counting sql: {}", countingSql );
             }
 
             @Override
             public void visit( SetOperationList setOpList ) {
+                List<SelectBody> selects;
+                int index;
+
                 for ( SetOperation ops : setOpList.getOperations() ) {
                     if ( "union all".equalsIgnoreCase( ops.getASTNode().jjtGetValue().toString() ) ) {
-                        List<SelectBody> selects = setOpList.getSelects();
+                        selects = setOpList.getSelects();
 
-                        for ( int index = ops.getASTNode().jjtGetNumChildren()  - 1; index >= 0; index -= 1 ) {
+                        for ( index = ops.getASTNode().jjtGetNumChildren()  - 1; index >= 0; index -= 1 ) {
                             ( ( PlainSelect ) selects.get( index ) ).setUseBrackets( true );
                         }
                     }
@@ -66,6 +74,8 @@ public class MySqlHook implements SqlHook {
 
                 setOpList.setLimit( limit );
                 pagingSql = setOpList.toString();
+
+                logger.debug( "Build paging sql: {}", pagingSql );
 
                 PlainSelect plainSelect;
                 for ( SelectBody select : setOpList.getSelects() ) {
@@ -78,6 +88,8 @@ public class MySqlHook implements SqlHook {
 
                     countingSql.add( plainSelect.toString() );
                 }
+
+                logger.debug( "Build counting sql: {}", countingSql );
             }
 
             @Override

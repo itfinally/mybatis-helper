@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:33067/bb_demand_db?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
+    username: qa_bb_demand
+    password: bmRJl7XYrSRcrhKNoUflx0wrdwiHO1
+    hikari:
+      auto-commit: false
+      connection-test-query: select 1
+
+    driver-class-name: com.mysql.jdbc.Driver
+
+mybatis:
+  configuration:
+    auto-mapping-behavior: full
+  executor-type: reuse
+
+#    username: root
+#    password:

@@ -1,12 +1,9 @@
 package top.itfinally.mybatis.jpa.override;
 
-import org.apache.ibatis.session.ExecutorType;
 import org.mybatis.spring.boot.autoconfigure.MybatisProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import java.util.Properties;
 
 /**
  * <pre>

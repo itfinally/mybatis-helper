@@ -31,6 +31,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Primary;
+import top.itfinally.mybatis.jpa.mapper.BasicConditionalMapper;
 
 import java.util.*;
 
@@ -47,10 +48,6 @@ import java.util.*;
  * 覆盖链路
  * MybatisProperties - Configuration - MapperRegistry - MapperProxyFactory - MapperProxy
  *
- * 在不手动提供 SqlSessionFactory 的情况下将使用 MybatisJpaConfiguration
- * 手动提供 SqlSessionFactory 的话需要重新设置 Configuration
- *
- * 默认忽略手动装配的 MybatisProperties 对象
  * </pre>
  */
 @Primary
@@ -61,7 +58,7 @@ public class MybatisJpaConfiguration extends Configuration {
     private final MapperRegistry mapperRegistry = new MybatisJpaMapperRegistry( this );
 
     public MybatisJpaConfiguration() {
-        configuration = new Configuration();
+        this( new Configuration() );
     }
 
     public MybatisJpaConfiguration( Configuration configuration ) {
@@ -86,6 +83,20 @@ public class MybatisJpaConfiguration extends Configuration {
     @Override
     public <T> T getMapper( Class<T> type, SqlSession sqlSession ) {
         return mapperRegistry.getMapper( type, sqlSession );
+    }
+
+    @Override
+    public boolean hasMapper( Class<?> type ) {
+        return mapperRegistry.hasMapper( type );
+    }
+
+    @Override
+    public MapperRegistry getMapperRegistry() {
+        return mapperRegistry;
+    }
+
+    public <T> T getOriginMapper( Class<T> type, SqlSession sqlSession ) {
+        return ( ( MybatisJpaMapperRegistry ) mapperRegistry ).getOriginMapper( type, sqlSession );
     }
 
     // delegated method
@@ -396,11 +407,6 @@ public class MybatisJpaConfiguration extends Configuration {
     }
 
     @Override
-    public MapperRegistry getMapperRegistry() {
-        return configuration.getMapperRegistry();
-    }
-
-    @Override
     public ReflectorFactory getReflectorFactory() {
         return configuration.getReflectorFactory();
     }
@@ -658,11 +664,6 @@ public class MybatisJpaConfiguration extends Configuration {
     @Override
     public void addInterceptor( Interceptor interceptor ) {
         configuration.addInterceptor( interceptor );
-    }
-
-    @Override
-    public boolean hasMapper( Class<?> type ) {
-        return configuration.hasMapper( type );
     }
 
     @Override

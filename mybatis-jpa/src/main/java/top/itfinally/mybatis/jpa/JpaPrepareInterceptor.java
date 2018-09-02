@@ -2,16 +2,23 @@ package top.itfinally.mybatis.jpa;
 
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
-import top.itfinally.mybatis.jpa.mapper.BasicCrudContextHolder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+import top.itfinally.mybatis.core.MappedStatementCreator;
+import top.itfinally.mybatis.core.MybatisCoreConfiguration;
+import top.itfinally.mybatis.jpa.sql.BasicCrudSqlCreator;
+import top.itfinally.mybatis.jpa.mapper.CrudContextHolder;
+import top.itfinally.mybatis.jpa.sql.MysqlCrudSqlCreator;
 
-import java.sql.Connection;
-import java.util.Properties;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * <pre>
@@ -24,16 +31,56 @@ import java.util.Properties;
  * *********************************************
  * </pre>
  */
+@Component
 @Intercepts( {
+        @Signature( type = Executor.class, method = "update", args = { MappedStatement.class, Object.class } ),
         @Signature( type = Executor.class, method = "query", args = { MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class } ),
         @Signature( type = Executor.class, method = "queryCursor", args = { MappedStatement.class, Object.class, RowBounds.class } ),
         @Signature( type = Executor.class, method = "query", args = { MappedStatement.class, Object.class,
                 RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class } )
 } )
 public class JpaPrepareInterceptor implements Interceptor {
+    private final BasicCrudSqlCreator sqlCreator;
+
+    private final Map<String, Class<?>[]> parameters;
+    private final Map<String, Method> methods;
+
+    public JpaPrepareInterceptor( MybatisJpaConfig jpaConfig, ApplicationContext context ) {
+        switch ( jpaConfig.getDatabaseId() ) {
+            case MybatisCoreConfiguration.MYSQL: {
+                sqlCreator = context.getBean( MysqlCrudSqlCreator.class );
+                break;
+            }
+
+            default: {
+                throw new UnsupportedOperationException( String.format( "No match database '%s'", jpaConfig.getDatabaseId() ) );
+            }
+        }
+
+        Map<String, Method> methods = new HashMap<>();
+        Map<String, Class<?>[]> parameters = new HashMap<>();
+        for ( Method method : sqlCreator.getClass().getDeclaredMethods() ) {
+            methods.put( method.getName(), method );
+            parameters.put( method.getName(), method.getParameterTypes() );
+        }
+
+        this.methods = Collections.unmodifiableMap( methods );
+        this.parameters = Collections.unmodifiableMap( parameters );
+    }
 
     @Override
     public Object intercept( Invocation invocation ) throws Throwable {
+        CrudContextHolder.Context context = CrudContextHolder.getContext();
+        if ( null == context ) {
+            return invocation.proceed();
+        }
+
+        CrudContextHolder.clear();
+
+        Object[] args = invocation.getArgs();
+        Object unknownArgs = args[ 1 ];
+
+        MappedStatementCreator.copy( ( MappedStatement ) args[ 0 ], getBoundSql( context, unknownArgs ) );
         return invocation.proceed();
     }
 
@@ -44,6 +91,34 @@ public class JpaPrepareInterceptor implements Interceptor {
 
     @Override
     public void setProperties( Properties properties ) {
+    }
 
+    private BoundSql getBoundSql( CrudContextHolder.Context context, Object unknownArgs ) {
+        try {
+            if ( !methods.containsKey( context.getMethod().getName() ) ) {
+                throw new RuntimeException( new NoSuchMethodException( String.format(
+                        "Failure to getting method '%s' from sql creator", context.getMethod().getName() ) ) );
+            }
+
+            Method method = methods.get( context.getMethod().getName() );
+            switch ( parameters.get( method.getName() ).length ) {
+                case 1: {
+                    return ( BoundSql ) method.invoke( sqlCreator, context.getMetadata() );
+                }
+
+                case 2: {
+                    return ( BoundSql ) method.invoke( sqlCreator, context.getMetadata(), unknownArgs );
+                }
+
+                default: {
+                    throw new UnsupportedOperationException( String.format( "method: %s parameter length: %d not found",
+                            method.getName(), parameters.get( method.getName() ).length ) );
+                }
+            }
+
+        } catch ( IllegalAccessException | InvocationTargetException e ) {
+            throw new RuntimeException( String.format( "Failure to invoke method '%s' by sqlSource object",
+                    context.getMethod().getName() ), e );
+        }
     }
 }

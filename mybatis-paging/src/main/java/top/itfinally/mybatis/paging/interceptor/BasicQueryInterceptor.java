@@ -8,6 +8,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import top.itfinally.mybatis.paging.configuration.MybatisPagingProperties;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -32,8 +33,8 @@ import java.util.List;
 } )
 public class BasicQueryInterceptor extends AbstractPagingInterceptor {
 
-    public BasicQueryInterceptor( List<DataSource> dataSources ) {
-        super( dataSources );
+    public BasicQueryInterceptor( MybatisPagingProperties properties ) {
+        super( properties );
     }
 
     @Override

@@ -18,6 +18,11 @@
   </parent>
 
   <dependencies>
+    <dependency>
+      <groupId>top.itfinally</groupId>
+      <artifactId>mybatis-core</artifactId>
+      <version>1.0.0.SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

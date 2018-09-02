@@ -210,7 +210,7 @@ ReferenceKeyEntity
    |
    | --- keyName: String ( 外键在数据表内的名称 )
    | --- databaseName: String ( 外键字段所在的数据库的名称 )
-   | --- table: TableEntity ( 外键字段所在的表 )
+   | --- tableName: TableEntity ( 外键字段所在的表 )
    | --- column: ColumnEntity ( 外键字段对应的列的元数据 )
    | --- referenceTable: TableEntity ( 外键关联的字段对应的表 )
    | --- referenceColumn: ColumnEntity ( 外键关联的字段的元数据 )

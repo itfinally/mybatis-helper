@@ -10,6 +10,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import top.itfinally.mybatis.paging.configuration.MybatisPagingProperties;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -32,8 +33,8 @@ import java.util.List;
         RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class } ) )
 public class CacheQueryInterceptor extends AbstractPagingInterceptor {
 
-    public CacheQueryInterceptor( List<DataSource> dataSources ) {
-        super( dataSources );
+    public CacheQueryInterceptor( MybatisPagingProperties properties ) {
+        super( properties );
     }
 
     @Override

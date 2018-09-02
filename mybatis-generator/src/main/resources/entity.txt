@@ -28,6 +28,7 @@ public class [( ${item.className} )][# th:if="${properties.superEntity} != null"
 
   [# th:each="column : ${entity.columns}"]
   [# th:if="${not column.hidden}"]
+  [# th:if="${column.primaryKey}"]@Id[/]
   @Column( name = "[( ${column.jdbcName} )]"[# th:if="${column.notNull}"], nullable = false[/] )
   public [( ${column.javaType} )] [( ${column.getterName} )]() {
     return [( ${column.javaName} )];

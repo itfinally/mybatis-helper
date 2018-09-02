@@ -1,5 +1,7 @@
 package top.itfinally.mybatis.jpa.entity;
 
+import java.util.List;
+
 /**
  * <pre>
  * *********************************************
@@ -12,4 +14,34 @@ package top.itfinally.mybatis.jpa.entity;
  * </pre>
  */
 public class EntityMetadata {
+    private String tableName;
+    private AttributeMetadata id;
+    private List<AttributeMetadata> columns;
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public EntityMetadata setTableName( String tableName ) {
+        this.tableName = tableName;
+        return this;
+    }
+
+    public AttributeMetadata getId() {
+        return id;
+    }
+
+    public EntityMetadata setId( AttributeMetadata id ) {
+        this.id = id;
+        return this;
+    }
+
+    public List<AttributeMetadata> getColumns() {
+        return columns;
+    }
+
+    public EntityMetadata setColumns( List<AttributeMetadata> columns ) {
+        this.columns = columns;
+        return this;
+    }
 }

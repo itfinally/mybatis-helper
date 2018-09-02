@@ -1,6 +1,6 @@
 package top.itfinally.mybatis.jpa.mapper;
 
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import top.itfinally.mybatis.jpa.criteria.CriteriaBuilder;
 
 import java.util.List;
@@ -17,38 +17,43 @@ import java.util.List;
  * </pre>
  */
 public interface BasicCrudMapper<Entity> {
+    String ID = "id";
+    String IDS = "ids";
+    String ENTITY = "entity";
+    String ENTITIES = "entities";
 
-    @Select( "queryByIdIs" )
-    Entity queryByIdIs( String id );
+    @Select( "" )
+    Entity queryByIdIs( @Param( ID ) String id );
 
-    @Select( "queryByIdIn" )
-    List<Entity> queryByIdIn( List<String> ids );
+    @Select( "" )
+    List<Entity> queryByIdIn( @Param( IDS ) List<String> ids );
 
-    @Select( "queryAll" )
+    @Select( "" )
     List<Entity> queryAll();
 
-    @Select( "existByIdIs" )
-    boolean existByIdIs( String id );
+    @Select( "" )
+    boolean existByIdIs( @Param( ID ) String id );
 
-    void save( Entity entity );
+    @Insert( "" )
+    void save( @Param( ENTITY ) Entity entity );
 
-    void saveWithNonnull( Entity entity );
+    @Insert( "" )
+    void saveWithNonnull( @Param( ENTITY ) Entity entity );
 
-    void saveAll( List<Entity> entities );
+    @Insert( "" )
+    void saveAll( @Param( ENTITIES ) List<Entity> entities );
 
-    void saveAllWithNonnull( List<Entity> entities );
+    @Insert( "" )
+    void updateByIdIs( @Param( ENTITY ) Entity entity );
 
-    void update( Entity entity );
+    @Update( "" )
+    void updateWithNonnullByIdIs( @Param( ENTITY ) Entity entity );
 
-    void updateWithNonnull( Entity entity );
+    @Delete( "" )
+    void deleteByIdIs( @Param( ID ) String id );
 
-    void updateAll( List<Entity> entities );
-
-    void updateAllWithNonnull( List<Entity> entities );
-
-    void deleteByIdIs( String id );
-
-    void deleteByIdIn( List<String> ids );
+    @Delete( "" )
+    void deleteAllByIdIn( @Param( IDS ) List<String> ids );
 
     CriteriaBuilder<Entity> getCriteriaBuilder();
 }

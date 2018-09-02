@@ -1,9 +1,7 @@
 package top.itfinally.mybatis.paging.interceptor;
 
-import com.google.common.base.Joiner;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.ibatis.binding.MapperMethod;
-import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -11,9 +9,9 @@ import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import top.itfinally.mybatis.core.MappedStatementCreator;
+import top.itfinally.mybatis.core.MybatisCoreConfiguration;
 import top.itfinally.mybatis.paging.Pager;
 import top.itfinally.mybatis.paging.PagingItem;
 import top.itfinally.mybatis.paging.collection.PagingCursor;
@@ -24,9 +22,6 @@ import top.itfinally.mybatis.paging.configuration.MybatisPagingProperties;
 import top.itfinally.mybatis.paging.interceptor.hook.MySqlHook;
 import top.itfinally.mybatis.paging.interceptor.hook.SqlHook;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -45,33 +40,13 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
     private final String databaseId;
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired( required = false )
     private MybatisPagingProperties properties;
 
-    AbstractPagingInterceptor( List<DataSource> dataSources ) {
-        DataSource dataSource;
+    AbstractPagingInterceptor( MybatisPagingProperties properties ) {
+        this.properties = properties;
 
-        if ( dataSources.isEmpty() ) {
-            throw new BeanCreationException( "Error to creating bean with class 'AbstractPagingInterceptor', No dataSource injected." );
-
-        } else if ( dataSources.size() == 1 ) {
-            dataSource = dataSources.get( 0 );
-
-        } else {
-            dataSource = properties.getDataSource();
-
-            if ( null == dataSource ) {
-                throw new BeanCreationException( "Error to creating bean with class 'AbstractPagingInterceptor', there are have more than one dataSource and no specified." );
-            }
-        }
-
-        try ( Connection connection = dataSource.getConnection() ) {
-            databaseId = connection.getMetaData().getDatabaseProductName().toLowerCase();
-            jdbcTemplate = new JdbcTemplate( dataSource );
-
-        } catch ( SQLException e ) {
-            throw new RuntimeException( "Cannot getting database name.", e );
-        }
+        databaseId = properties.getDatabaseId();
+        jdbcTemplate = new JdbcTemplate( properties.getDatasource() );
     }
 
     protected abstract void hook( Object[] thisArgs, MappedStatement mappedStatement, BoundSql boundSql );
@@ -98,7 +73,7 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
         boundSql = new BoundSql( mappedStatement.getConfiguration(), sqlHook.getPagingSql(),
                 boundSql.getParameterMappings(), boundSql.getParameterObject() );
 
-        hook( thisArgs, copyMappedStatement( mappedStatement, boundSql ), boundSql );
+        hook( thisArgs, MappedStatementCreator.copy( mappedStatement, boundSql ), boundSql );
 
         Object result = invocation.proceed();
 
@@ -160,43 +135,6 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
         return orderedArgs.toArray();
     }
 
-    private static MappedStatement copyMappedStatement( MappedStatement mappedStatement, BoundSql boundSql ) {
-        StaticSqlSource sqlSource = new StaticSqlSource( mappedStatement.getConfiguration(), boundSql.getSql(), boundSql.getParameterMappings() );
-        MappedStatement.Builder builder = new MappedStatement.Builder( mappedStatement.getConfiguration(),
-                mappedStatement.getId(), sqlSource, mappedStatement.getSqlCommandType() );
-
-        if ( mappedStatement.getKeyColumns() != null && mappedStatement.getKeyColumns().length > 0 ) {
-            builder.keyColumn( Joiner.on( "," ).join( mappedStatement.getKeyColumns() ) );
-        }
-
-        if ( mappedStatement.getKeyProperties() != null && mappedStatement.getKeyProperties().length > 0 ) {
-            builder.keyProperty( Joiner.on( "," ).join( mappedStatement.getKeyProperties() ) );
-        }
-
-        if ( mappedStatement.getResultSets() != null && mappedStatement.getResultSets().length > 0 ) {
-            builder.resultSets( Joiner.on( "," ).join( mappedStatement.getResultSets() ) );
-        }
-
-        return builder.cache( mappedStatement.getCache() )
-                .fetchSize( mappedStatement.getFetchSize() )
-                .databaseId( mappedStatement.getDatabaseId() )
-                .keyGenerator( mappedStatement.getKeyGenerator() )
-                .flushCacheRequired( mappedStatement.isFlushCacheRequired() )
-
-                .lang( mappedStatement.getLang() )
-                .timeout( mappedStatement.getTimeout() )
-                .useCache( mappedStatement.isUseCache() )
-                .resource( mappedStatement.getResource() )
-                .resultMaps( mappedStatement.getResultMaps() )
-
-                .parameterMap( mappedStatement.getParameterMap() )
-                .resultOrdered( mappedStatement.isResultOrdered() )
-                .resultSetType( mappedStatement.getResultSetType() )
-                .statementType( mappedStatement.getStatementType() )
-
-                .build();
-    }
-
     private SqlHook getSqlHook( String sql, PagingItem pagingItem ) {
         try {
             if ( properties != null && properties.getSqlHookMap().containsKey( sql.toLowerCase() ) ) {
@@ -209,7 +147,7 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
             }
 
             switch ( databaseId ) {
-                case "mysql": {
+                case MybatisCoreConfiguration.MYSQL: {
                     return new MySqlHook.Builder().build( sql, pagingItem.getBeginRow(), pagingItem.getRange() );
                 }
 

@@ -4,11 +4,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>mybatis-paging</artifactId>
-  <!--<version>1.0.0.RELEASE</version>-->
+  <artifactId>mybatis-core</artifactId>
   <version>1.0.0.SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>mybatis-paging</name>
+
+  <name>mybatis-core</name>
+  <url>https://www.itfinally.com</url>
 
   <parent>
     <groupId>top.itfinally</groupId>
@@ -17,21 +18,7 @@
     <relativePath>../mybatis-helper-parent/pom.xml</relativePath>
   </parent>
 
-  <dependencies>
-    <dependency>
-      <groupId>top.itfinally</groupId>
-      <artifactId>mybatis-core</artifactId>
-      <version>1.0.0.SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.github.jsqlparser</groupId>
-      <artifactId>jsqlparser</artifactId>
-      <version>1.2</version>
-    </dependency>
-  </dependencies>
-
   <build>
-    <finalName>mybatis-paging</finalName>
+    <finalName>mybatis-core</finalName>
   </build>
 </project>

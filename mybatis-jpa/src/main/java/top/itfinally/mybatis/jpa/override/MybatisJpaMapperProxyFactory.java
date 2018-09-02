@@ -1,7 +1,6 @@
 package top.itfinally.mybatis.jpa.override;
 
 import org.apache.ibatis.binding.MapperMethod;
-import org.apache.ibatis.binding.MapperProxy;
 import org.apache.ibatis.binding.MapperProxyFactory;
 import org.apache.ibatis.session.SqlSession;
 
@@ -20,19 +19,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * *********************************************
  * </pre>
  */
-public class MybatisJpaMapperProxyFactory<Entity> extends MapperProxyFactory<Entity> {
-    private final Class<Entity> mapperInterface;
+public class MybatisJpaMapperProxyFactory<Mapper, Entity> extends MapperProxyFactory<Mapper> {
+    private final Class<Entity> entityClass;
+    private final Class<Mapper> mapperInterface;
     private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<>();
 
-
-    public MybatisJpaMapperProxyFactory( Class<Entity> mapperInterface ) {
+    public MybatisJpaMapperProxyFactory( Class<Entity> entityClass, Class<Mapper> mapperInterface ) {
         super( mapperInterface );
-
+        this.entityClass = entityClass;
         this.mapperInterface = mapperInterface;
     }
 
     @Override
-    public Entity newInstance( SqlSession sqlSession ) {
-        return newInstance( new MybatisJpaMapperProxy<>( sqlSession, mapperInterface, methodCache ) );
+    public Mapper newInstance( SqlSession sqlSession ) {
+        return newInstance( new MybatisJpaMapperProxy<>( sqlSession, mapperInterface, entityClass, methodCache ) );
     }
 }

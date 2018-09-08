@@ -47,10 +47,6 @@ public class MybatisJpaMapperRegistry extends MapperRegistry {
         }
     }
 
-    public <Entity> Entity getOriginMapper( Class<Entity> type, SqlSession sqlSession ) {
-        return super.getMapper( type, sqlSession );
-    }
-
     private FutureTask<MapperProxyFactory<?>> makePromise( final Class<?> mapper ) {
         return new FutureTask<>( new Callable<MapperProxyFactory<?>>() {
             @Override

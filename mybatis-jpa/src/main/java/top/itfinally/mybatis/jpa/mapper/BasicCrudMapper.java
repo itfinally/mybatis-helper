@@ -35,25 +35,25 @@ public interface BasicCrudMapper<Entity> {
     boolean existByIdIs( @Param( ID ) String id );
 
     @Insert( "" )
-    void save( @Param( ENTITY ) Entity entity );
+    int save( @Param( ENTITY ) Entity entity );
 
     @Insert( "" )
-    void saveWithNonnull( @Param( ENTITY ) Entity entity );
+    int saveWithNonnull( @Param( ENTITY ) Entity entity );
 
     @Insert( "" )
-    void saveAll( @Param( ENTITIES ) List<Entity> entities );
+    int saveAll( @Param( ENTITIES ) List<Entity> entities );
 
     @Insert( "" )
-    void updateByIdIs( @Param( ENTITY ) Entity entity );
+    int updateByIdIs( @Param( ENTITY ) Entity entity );
 
     @Update( "" )
-    void updateWithNonnullByIdIs( @Param( ENTITY ) Entity entity );
+    int updateWithNonnullByIdIs( @Param( ENTITY ) Entity entity );
 
     @Delete( "" )
-    void deleteByIdIs( @Param( ID ) String id );
+    int deleteByIdIs( @Param( ID ) String id );
 
     @Delete( "" )
-    void deleteAllByIdIn( @Param( IDS ) List<String> ids );
+    int deleteAllByIdIn( @Param( IDS ) List<String> ids );
 
     CriteriaBuilder<Entity> getCriteriaBuilder();
 }

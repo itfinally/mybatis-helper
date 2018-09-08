@@ -2,6 +2,7 @@ package top.itfinally.mybatis.jpa.override;
 
 import org.mybatis.spring.boot.autoconfigure.MybatisProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
@@ -18,16 +19,19 @@ import org.springframework.context.annotation.Primary;
  */
 @Primary
 @Configuration
-@ConfigurationProperties( prefix = "mybatis" )
+@ConfigurationProperties( prefix = MybatisProperties.MYBATIS_PREFIX )
 public class MybatisJpaProperties extends MybatisProperties {
-    private org.apache.ibatis.session.Configuration configuration;
 
-    public MybatisJpaProperties( org.apache.ibatis.session.Configuration configuration ) {
-        this.configuration = configuration;
-    }
+    @NestedConfigurationProperty
+    private MybatisJpaConfiguration configuration;
 
     @Override
-    public org.apache.ibatis.session.Configuration getConfiguration() {
+    public MybatisJpaConfiguration getConfiguration() {
         return configuration;
+    }
+
+    public MybatisJpaProperties setConfiguration( MybatisJpaConfiguration configuration ) {
+        this.configuration = configuration;
+        return this;
     }
 }

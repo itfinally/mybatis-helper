@@ -1,8 +1,8 @@
-package top.itfinally.mybatis.jpa.mapper;
+package top.itfinally.mybatis.jpa.context;
 
 import top.itfinally.mybatis.core.ThreadLocalDelegatedFactory;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
-import top.itfinally.mybatis.jpa.entity.MetadataBuilder;
+import top.itfinally.mybatis.jpa.context.MetadataFactory;
 
 import java.lang.reflect.Method;
 
@@ -24,7 +24,7 @@ public class CrudContextHolder {
     }
 
     public static void setContext( Class<?> entityClass, Method method ) {
-        contextThreadLocal.set( new Context( MetadataBuilder.build( entityClass ), method ) );
+        contextThreadLocal.set( new Context( MetadataFactory.build( entityClass ), method ) );
     }
 
     public static Context getContext() {
@@ -39,7 +39,7 @@ public class CrudContextHolder {
         private final EntityMetadata metadata;
         private final Method method;
 
-        public Context( EntityMetadata metadata, Method method ) {
+        private Context( EntityMetadata metadata, Method method ) {
             this.metadata = metadata;
             this.method = method;
         }

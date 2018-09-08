@@ -34,7 +34,7 @@ public class MysqlScanComponent extends DatabaseScanComponent {
 
     @Override
     public List<TableEntity> getTables() {
-        List<Map<String, String>> tables = Builder.informationMapper.getTables();
+        List<Map<String, String>> tables = informationMapper.getTables();
         Map<String, TableEntity> tableMapping = new HashMap<>( tables.size() );
         List<TableEntity> tableInfoList = new ArrayList<>( tables.size() );
 
@@ -78,7 +78,7 @@ public class MysqlScanComponent extends DatabaseScanComponent {
     }
 
     private TableEntity extractColumnsInfo( TableEntity table ) {
-        List<Map<String, String>> columns = Builder.informationMapper.getColumns( table.getJdbcName() );
+        List<Map<String, String>> columns = informationMapper.getColumns( table.getJdbcName() );
         List<ColumnEntity> columnList = new ArrayList<>( columns.size() );
         ColumnEntity column;
         Class<?> type;
@@ -93,7 +93,7 @@ public class MysqlScanComponent extends DatabaseScanComponent {
                     .setPrimaryKey( "pri".equalsIgnoreCase( item.get( "COLUMN_KEY" ) ) )
                     .setJavaName( namingConverter.convert( ( item.get( "COLUMN_NAME" ) ).toLowerCase(), true ) );
 
-            typeMapping = Builder.initTypeMapping( column );
+            typeMapping = initTypeMapping( column );
             type = PrimitiveType.getType( typeMapping.getJavaType() );
 
             buildGS( column.setJavaTypeClass( typeMapping.getJavaType() )
@@ -110,7 +110,7 @@ public class MysqlScanComponent extends DatabaseScanComponent {
     }
 
     private void relationshipAnalyzing( TableEntity table, Map<String, TableEntity> tableMapping ) {
-        List<Map<String, String>> tableKeys = Builder.informationMapper.getTableKeys( table.getJdbcName() );
+        List<Map<String, String>> tableKeys = informationMapper.getTableKeys( table.getJdbcName() );
 
         ColumnEntity column;
         Set<String> keyNames;

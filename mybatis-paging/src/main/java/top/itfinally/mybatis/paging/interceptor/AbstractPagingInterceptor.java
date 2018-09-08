@@ -6,6 +6,7 @@ import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
+import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
@@ -67,13 +68,15 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
         MappedStatement mappedStatement = ( MappedStatement ) thisArgs[ 0 ];
         Object unknownArgs = thisArgs[ 1 ];
 
+        if ( mappedStatement.getSqlCommandType() != SqlCommandType.SELECT ) {
+            return invocation.proceed();
+        }
+
         BoundSql boundSql = mappedStatement.getBoundSql( unknownArgs );
         SqlHook sqlHook = getSqlHook( boundSql.getSql(), pagingItem );
+        BoundSql newBoundSql = MappedStatementCreator.newBoundSql( mappedStatement.getConfiguration(), sqlHook.getPagingSql(), boundSql );
 
-        boundSql = new BoundSql( mappedStatement.getConfiguration(), sqlHook.getPagingSql(),
-                boundSql.getParameterMappings(), boundSql.getParameterObject() );
-
-        hook( thisArgs, MappedStatementCreator.copy( mappedStatement, boundSql ), boundSql );
+        hook( thisArgs, MappedStatementCreator.copyMappedStatement( mappedStatement, newBoundSql ), newBoundSql );
 
         Object result = invocation.proceed();
 
@@ -129,7 +132,12 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
 
         List<Object> orderedArgs = new ArrayList<>( mappings.size() );
         for ( ParameterMapping item : mappings ) {
-            orderedArgs.add( args.get( item.getProperty() ) );
+            if ( boundSql.hasAdditionalParameter( item.getProperty() ) ) {
+                orderedArgs.add( boundSql.getAdditionalParameter( item.getProperty() ) );
+
+            } else {
+                orderedArgs.add( args.get( item.getProperty() ) );
+            }
         }
 
         return orderedArgs.toArray();

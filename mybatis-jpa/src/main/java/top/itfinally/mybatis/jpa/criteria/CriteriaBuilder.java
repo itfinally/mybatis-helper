@@ -17,6 +17,4 @@ public interface CriteriaBuilder<Entity> {
     CriteriaUpdate<Entity> createUpdate();
 
     CriteriaDelete<Entity> createDelete();
-
-
 }

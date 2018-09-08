@@ -1,11 +1,12 @@
 package top.itfinally.mybatis.generator.core.database;
 
 import org.apache.ibatis.type.JdbcType;
-import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import top.itfinally.mybatis.core.TypeMappings;
+import top.itfinally.mybatis.generator.configuration.MybatisGeneratorConfigure;
 import top.itfinally.mybatis.generator.configuration.NamingMapping;
 import top.itfinally.mybatis.generator.core.NamingConverter;
 import top.itfinally.mybatis.generator.core.PrimitiveType;
@@ -17,11 +18,10 @@ import top.itfinally.mybatis.generator.core.database.mapper.OracleInformationMap
 import top.itfinally.mybatis.generator.exception.UnknownTypeException;
 
 import javax.annotation.Resource;
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
+
+import static top.itfinally.mybatis.core.MybatisCoreConfiguration.MYSQL;
+import static top.itfinally.mybatis.core.MybatisCoreConfiguration.ORACLE;
 
 /**
  * <pre>
@@ -35,6 +35,11 @@ import java.util.*;
  * </pre>
  */
 public abstract class DatabaseScanComponent {
+    private static Map<String, String> typePatches;
+
+    private static Map<String, TypeMapping> typeMappings;
+
+    protected static InformationMapper informationMapper;
 
     @Resource
     protected NamingConverter namingConverter;
@@ -109,43 +114,44 @@ public abstract class DatabaseScanComponent {
         }
     }
 
+    protected static TypeMapping initTypeMapping( ColumnEntity column ) {
+        String key = column.getJdbcType();
+        TypeMapping typeMapping = typeMappings.get( key );
+        if ( typeMapping != null ) {
+            return typeMapping;
+        }
+
+        if ( typePatches.containsKey( key ) && typeMappings.containsKey(
+                column.setJdbcType( typePatches.get( key ) ).getJdbcType() ) ) {
+
+            return typeMappings.get( column.getJdbcType() );
+        }
+
+        throw new UnknownTypeException( String.format( "No mapping found for jdbc type '%s'", column.getJdbcType() ) );
+    }
+
     @Component
     public static class Builder {
-        static String databaseId;
-
-        static InformationMapper informationMapper;
-
-        private static Map<String, TypeMapping> typeMappings;
-
-        private static Map<String, String> typePatches;
-
         private ApplicationContext context;
 
         private Class<? extends DatabaseScanComponent> activeClass;
 
-        public Builder( DataSource dataSource, ApplicationContext context ) {
-            try ( Connection connection = dataSource.getConnection() ) {
-                databaseId = connection.getMetaData().getDatabaseProductName().toLowerCase();
-
-            } catch ( SQLException e ) {
-                throw new RuntimeException( "Cannot getting database name.", e );
-            }
-
-            switch ( databaseId ) {
-                case "mysql": {
+        public Builder( MybatisGeneratorConfigure configure, ApplicationContext context ) {
+            switch ( configure.getDatabaseId() ) {
+                case MYSQL: {
                     informationMapper = context.getBean( MysqlInformationMapper.class );
                     activeClass = MysqlScanComponent.class;
                     break;
                 }
 
-                case "oracle": {
+                case ORACLE: {
                     informationMapper = context.getBean( OracleInformationMapper.class );
                     activeClass = OracleScanComponent.class;
                     break;
                 }
 
                 default: {
-                    throw new IllegalStateException( String.format( "Not match database id( '%s' ).", databaseId ) );
+                    throw new UnsupportedOperationException( String.format( "Not match database id( '%s' ).", configure.getDatabaseId() ) );
                 }
             }
 
@@ -154,51 +160,29 @@ public abstract class DatabaseScanComponent {
         }
 
         private void initTypeMapping( ApplicationContext context ) {
-            TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
             Map<String, TypeMapping> typeMappings = new HashMap<>();
             Map<String, String> typePatches = new HashMap<>();
 
             Class<?> typeCls;
-            TypeHandler<?> handler;
-            for ( JdbcType item : JdbcType.values() ) {
-                handler = typeHandlerRegistry.getTypeHandler( item );
+            Map<JdbcType, Class<?>> mapping = TypeMappings.getJdbcMapping();
 
-                if ( null == handler ) {
+            for ( JdbcType item : JdbcType.values() ) {
+                if ( !mapping.containsKey( item ) ) {
                     continue;
                 }
 
-                try {
-                    typeCls = handler.getClass().getMethod( "getNullableResult", ResultSet.class, int.class ).getReturnType();
-                    typeMappings.put( item.toString(), new TypeMapping()
-                            .setJavaType( typeCls )
-                            .setJdbcType( item.toString() )
-                            .setJavaTypeFullName( typeCls.getName().matches( "^java\\.lang.*|^\\[.*" ) ? "" : typeCls.getName() ) );
+                typeCls = mapping.get( item );
 
-                } catch ( NoSuchMethodException e ) {
-                    throw new RuntimeException( e );
-                }
+                typeMappings.put( item.toString(), new TypeMapping()
+                        .setJavaType( typeCls )
+                        .setJdbcType( item.toString() )
+                        .setJavaTypeFullName( typeCls.getName().matches( "^java\\.lang.*|^\\[.*" ) ? "" : typeCls.getName() ) );
             }
 
             context.getBean( activeClass ).typePatch( typePatches );
 
-            Builder.typePatches = Collections.unmodifiableMap( typePatches );
-            Builder.typeMappings = Collections.unmodifiableMap( typeMappings );
-        }
-
-        static TypeMapping initTypeMapping( ColumnEntity column ) {
-            String key = column.getJdbcType();
-            TypeMapping typeMapping = typeMappings.get( key );
-            if ( typeMapping != null ) {
-                return typeMapping;
-            }
-
-            if ( typePatches.containsKey( key ) && typeMappings.containsKey(
-                    column.setJdbcType( typePatches.get( key ) ).getJdbcType() ) ) {
-
-                return typeMappings.get( column.getJdbcType() );
-            }
-
-            throw new UnknownTypeException( String.format( "No mapping found for jdbc type '%s'", column.getJdbcType() ) );
+            DatabaseScanComponent.typePatches = Collections.unmodifiableMap( typePatches );
+            DatabaseScanComponent.typeMappings = Collections.unmodifiableMap( typeMappings );
         }
 
         public DatabaseScanComponent getScanComponent() {

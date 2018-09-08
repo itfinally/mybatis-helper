@@ -16,13 +16,4 @@ import top.itfinally.mybatis.core.MybatisCoreConfiguration;
  */
 @Configuration
 public class MybatisJpaConfig extends MybatisCoreConfiguration {
-    private boolean isAutoIncrement = false;
-
-    public boolean isAutoIncrement() {
-        return isAutoIncrement;
-    }
-
-    public void setAutoIncrement( boolean autoIncrement ) {
-        isAutoIncrement = autoIncrement;
-    }
 }

@@ -1,14 +1,17 @@
-package top.itfinally.mybatis.jpa.entity;
+package top.itfinally.mybatis.jpa.context;
 
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.ExtendedBeanInfoFactory;
+import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
+import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.exception.DuplicatePrimaryKeyException;
 import top.itfinally.mybatis.jpa.exception.MissingPrimaryKeyException;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -31,12 +34,12 @@ import java.util.concurrent.*;
  * *********************************************
  * </pre>
  */
-public class MetadataBuilder {
+public class MetadataFactory {
     private static final ConcurrentMap<Class<?>, FutureTask<EntityMetadata>> metadataCache = new ConcurrentHashMap<>();
     private static final ExtendedBeanInfoFactory beanInfoFactory = new ExtendedBeanInfoFactory();
-    private static final Logger logger = LoggerFactory.getLogger( MetadataBuilder.class );
+    private static final Logger logger = LoggerFactory.getLogger( MetadataFactory.class );
 
-    private MetadataBuilder() {
+    private MetadataFactory() {
     }
 
     public static EntityMetadata build( Class<?> entityClass ) {
@@ -90,7 +93,11 @@ public class MetadataBuilder {
             throw new MissingPrimaryKeyException( String.format( "Missing a primary key on entity '%s'", entityClass.getName() ) );
         }
 
-        return new EntityMetadata().setColumns( attributes ).setTableName( table.name() ).setId( primaryKey );
+        return new EntityMetadata()
+                .setId( primaryKey )
+                .setColumns( attributes )
+                .setTableName( table.name() )
+                .setEntityClass( entityClass );
     }
 
     private static List<AttributeMetadata> buildAttribute( Class<?> entityClass ) {
@@ -105,7 +112,7 @@ public class MetadataBuilder {
         }
 
         Field field;
-        Column column;
+        ColumnAnnotation column;
 
         for ( PropertyDescriptor pd : beanInfo.getPropertyDescriptors() ) {
             if ( "class".equals( pd.getDisplayName() ) ) {
@@ -117,17 +124,13 @@ public class MetadataBuilder {
                 throw new IllegalStateException( String.format( "No such field '%s' on entity '%s'", pd.getName(), entityClass.getName() ) );
             }
 
-            column = getJpaAnnotation( Column.class, field, pd );
-
-            if ( null == column ) {
-                throw new IllegalStateException( String.format( "Missing annotation '@Column' on entity field '%s'", field.getName() ) );
-            }
+            column = new ColumnAnnotation( field, pd );
 
             metadata.add( new AttributeMetadata()
                     .setField( field )
-                    .setJdbcName( column.name() )
                     .setJavaName( field.getName() )
-                    .setNullable( column.nullable() )
+                    .setNullable( column.isNullable() )
+                    .setJdbcName( column.getJdbcName() )
                     .setReadMethod( pd.getReadMethod() )
                     .setWriteMethod( pd.getWriteMethod() )
                     .setPrimary( getJpaAnnotation( Id.class, field, pd ) != null ) );
@@ -184,5 +187,27 @@ public class MetadataBuilder {
         }
 
         return null;
+    }
+
+    private static class ColumnAnnotation {
+        private final Column column;
+        private final JoinColumn joinColumn;
+
+        private ColumnAnnotation( Field field, PropertyDescriptor pd ) {
+            column = getJpaAnnotation( Column.class, field, pd );
+            joinColumn = getJpaAnnotation( JoinColumn.class, field, pd );
+
+            if ( null == column && null == joinColumn ) {
+                throw new IllegalStateException( String.format( "Missing annotation '@Column' or '@JoinColumn' on entity field '%s'", field.getName() ) );
+            }
+        }
+
+        private String getJdbcName() {
+            return joinColumn != null ? joinColumn.name() : column.name();
+        }
+
+        private boolean isNullable() {
+            return joinColumn != null ? joinColumn.nullable() : column.nullable();
+        }
     }
 }

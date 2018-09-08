@@ -1,9 +1,12 @@
 package top.itfinally.mybatis.jpa;
 
+import com.google.common.collect.Lists;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ResultMap;
+import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -11,14 +14,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.core.MappedStatementCreator;
 import top.itfinally.mybatis.core.MybatisCoreConfiguration;
+import top.itfinally.mybatis.jpa.context.ResultMapContextHolder;
 import top.itfinally.mybatis.jpa.sql.BasicCrudSqlCreator;
-import top.itfinally.mybatis.jpa.mapper.CrudContextHolder;
+import top.itfinally.mybatis.jpa.context.CrudContextHolder;
 import top.itfinally.mybatis.jpa.sql.MysqlCrudSqlCreator;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * <pre>
@@ -78,9 +81,20 @@ public class JpaPrepareInterceptor implements Interceptor {
         CrudContextHolder.clear();
 
         Object[] args = invocation.getArgs();
+        MappedStatement mappedStatement = ( MappedStatement ) args[ 0 ];
         Object unknownArgs = args[ 1 ];
 
-        MappedStatementCreator.copy( ( MappedStatement ) args[ 0 ], getBoundSql( context, unknownArgs ) );
+        MappedStatement.Builder mappedStatementBuilder = MappedStatementCreator
+                .getMappedStatementBuilder( mappedStatement, getBoundSql( context, unknownArgs ) );
+
+        if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
+            ResultMap resultMap = ResultMapContextHolder.getResultMap( mappedStatement.getConfiguration(), context );
+            mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+        }
+
+
+        args[ 0 ] = mappedStatementBuilder.build();
+
         return invocation.proceed();
     }
 

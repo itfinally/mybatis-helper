@@ -15,6 +15,7 @@ import java.util.List;
  */
 public class EntityMetadata {
     private String tableName;
+    private Class<?> entityClass;
     private AttributeMetadata id;
     private List<AttributeMetadata> columns;
 
@@ -24,6 +25,15 @@ public class EntityMetadata {
 
     public EntityMetadata setTableName( String tableName ) {
         this.tableName = tableName;
+        return this;
+    }
+
+    public Class<?> getEntityClass() {
+        return entityClass;
+    }
+
+    public EntityMetadata setEntityClass( Class<?> entityClass ) {
+        this.entityClass = entityClass;
         return this;
     }
 

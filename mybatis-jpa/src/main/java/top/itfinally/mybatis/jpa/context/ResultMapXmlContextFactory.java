@@ -52,7 +52,7 @@ public class ResultMapXmlContextFactory {
         String filePath = resultMapMetadata.getFilePath();
         String content = createMapperXmlContent( resultMapMetadata, metadata );
 
-        fileManager.write( filePath, createMapperXmlContent( resultMapMetadata, metadata ) );
+        fileManager.write( filePath, content );
         logger.debug( "building mapper at '{}';\n content like this:\n\n{}\n\n", filePath, content );
 
         try {
@@ -143,7 +143,7 @@ public class ResultMapXmlContextFactory {
         private static final String DEFAULT_TEMPORARY_FOLDER_PATH = Objects.requireNonNull( Thread.currentThread()
                 .getContextClassLoader().getResource( "." ) ).getPath();
 
-        private String write( String path, String content ) {
+        private void write( String path, String content ) {
             try ( OutputStream out = getOutputStream( path ) ) {
                 out.write( content.getBytes() );
                 out.flush();
@@ -151,8 +151,6 @@ public class ResultMapXmlContextFactory {
             } catch ( IOException e ) {
                 throw new RuntimeException( String.format( "Failure to write file '%s', method: %s", path, e.getMessage() ), e );
             }
-
-            return content;
         }
 
         private OutputStream getOutputStream( String path ) {

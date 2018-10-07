@@ -1,0 +1,77 @@
+package top.itfinally.mybatis.jpa.criteria.query;
+
+
+import top.itfinally.mybatis.jpa.criteria.Expression;
+import top.itfinally.mybatis.jpa.criteria.Predicate;
+
+import java.util.Collection;
+
+/**
+ * <pre>
+ * *********************************************
+ * All rights reserved.
+ * Description: ${类文件描述}
+ * *********************************************
+ *  Version       Date          Author        Desc ( 一句话描述修改 )
+ *  v1.0          2018/9/29       itfinally       首次创建
+ * *********************************************
+ * </pre>
+ */
+public interface CriteriaBuilder {
+
+    CriteriaQuery<Object> createQuery();
+
+//    <Entity> CriteriaDelete<Entity> createCriteriaUpdate( Class<Entity> targetEntity );
+//
+//    <Entity> CriteriaDelete<Entity> createCriteriaDelete( Class<Entity> targetEntity );
+
+
+    // expression
+
+
+    <Entity> Expression<Entity> max( Expression<?> path );
+
+    <Entity> Expression<Entity> min( Expression<?> path );
+
+    <Entity> Expression<Entity> count( Expression<?> path );
+
+    Predicate isTrue( Expression<?> path );
+
+    Predicate isFalse( Expression<?> path );
+
+    Predicate isNull( Expression<?> path );
+
+    Predicate isNotNull( Expression<?> path );
+
+    Predicate equal( Expression<?> left, Expression<?> right );
+
+    Predicate equal( Expression<?> path, Object value );
+
+    Predicate notEqual( Expression<?> left, Expression<?> right );
+
+    Predicate notEqual( Expression<?> path, Object value );
+
+    Predicate greaterThan( Expression<?> left, Expression<?> right );
+
+    Predicate greaterThan( Expression<?> path, Object value );
+
+    Predicate greaterThanOrEqualTo( Expression<?> left, Expression<?> right );
+
+    Predicate greaterThanOrEqualTo( Expression<?> path, Object value );
+
+    Predicate lessThan( Expression<?> left, Expression<?> right );
+
+    Predicate lessThan( Expression<?> path, Object value );
+
+    Predicate lessThanOrEqualTo( Expression<?> left, Expression<?> right );
+
+    Predicate lessThanOrEqualTo( Expression<?> path, Object value );
+
+    Predicate like( Expression<?> path, String pattern );
+
+    Predicate notLike( Expression<?> path, String pattern );
+
+    Predicate in( Expression<?> path, Expression<?> expression );
+
+    Predicate in( Expression<?> path, Collection<?> values );
+}

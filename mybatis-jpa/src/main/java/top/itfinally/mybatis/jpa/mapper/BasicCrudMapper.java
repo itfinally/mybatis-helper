@@ -1,7 +1,7 @@
 package top.itfinally.mybatis.jpa.mapper;
 
 import org.apache.ibatis.annotations.*;
-import top.itfinally.mybatis.jpa.criteria.CriteriaBuilder;
+import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 
 import java.util.List;
 
@@ -55,5 +55,5 @@ public interface BasicCrudMapper<Entity> {
     @Delete( "" )
     int deleteAllByIdIn( @Param( IDS ) List<String> ids );
 
-    CriteriaBuilder<Entity> getCriteriaBuilder();
+    CriteriaBuilder getCriteriaBuilder();
 }

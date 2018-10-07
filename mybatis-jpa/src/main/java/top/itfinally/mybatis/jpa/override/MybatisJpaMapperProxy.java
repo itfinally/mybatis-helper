@@ -6,7 +6,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import top.itfinally.mybatis.jpa.criteria.CriteriaBuilder;
+import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.mapper.BasicConditionalMapper;
 import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;

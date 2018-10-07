@@ -6,21 +6,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.ExtendedBeanInfoFactory;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
+import top.itfinally.mybatis.jpa.entity.ReferenceMetadata;
 import top.itfinally.mybatis.jpa.exception.DuplicatePrimaryKeyException;
 import top.itfinally.mybatis.jpa.exception.MissingPrimaryKeyException;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -75,33 +72,31 @@ public class MetadataFactory {
             throw new IllegalStateException( String.format( "Missing a table name on entity '%s'", entityClass.getName() ) );
         }
 
-        List<AttributeMetadata> attributes = buildAttribute( entityClass );
-        AttributeMetadata primaryKey = null;
+        EntityMetadata metadata = new EntityMetadata().setEntityClass( entityClass ).setTableName( table.name() );
+        Map<Class<?>, ReferenceMetadata> referenceMetadataMap = createAttributeAndInject( metadata, entityClass );
 
-        for ( AttributeMetadata attr : attributes ) {
-            if ( attr.isPrimary() ) {
-                if ( primaryKey != null ) {
-                    throw new DuplicatePrimaryKeyException( String.format(
-                            "Duplicate primary key on entity '%s'", entityClass.getName() ) );
-                }
-
-                primaryKey = attr;
-            }
-        }
-
-        if ( null == primaryKey ) {
+        if ( null == metadata.getId() ) {
             throw new MissingPrimaryKeyException( String.format( "Missing a primary key on entity '%s'", entityClass.getName() ) );
         }
 
-        return new EntityMetadata()
-                .setId( primaryKey )
-                .setColumns( attributes )
-                .setTableName( table.name() )
-                .setEntityClass( entityClass );
+        if ( !referenceMetadataMap.isEmpty() ) {
+            Deque<Class<?>> entityClasses = new ArrayDeque<>( referenceMetadataMap.keySet() );
+            buildEntityAndInjectToReferenceMetadata( entityClasses.pop(), entityClasses, referenceMetadataMap );
+        }
+
+        return metadata;
     }
 
-    private static List<AttributeMetadata> buildAttribute( Class<?> entityClass ) {
-        List<AttributeMetadata> metadata = new ArrayList<>();
+    private static Map<Class<?>, ReferenceMetadata> buildEntityAndInjectToReferenceMetadata(
+            Class<?> target, Deque<Class<?>> entityClasses, Map<Class<?>, ReferenceMetadata> referenceMetadataMap ) {
+
+        referenceMetadataMap.get( target ).setEntityMetadata( buildEntity( target ) );
+        return entityClasses.isEmpty() ? referenceMetadataMap : buildEntityAndInjectToReferenceMetadata( entityClasses.pop(), entityClasses, referenceMetadataMap );
+    }
+
+    private static Map<Class<?>, ReferenceMetadata> createAttributeAndInject( EntityMetadata metadata, Class<?> entityClass ) {
+        List<ReferenceMetadata> referenceMetadataList = metadata.setReferenceColumns( new ArrayList<ReferenceMetadata>() ).getReferenceColumns();
+        List<AttributeMetadata> attributeMetadataList = metadata.setColumns( new ArrayList<AttributeMetadata>() ).getColumns();
         BeanInfo beanInfo;
 
         try {
@@ -111,8 +106,18 @@ public class MetadataFactory {
             throw new RuntimeException( String.format( "Failure to getting getter/setter of entity '%s'", entityClass.getName() ), e );
         }
 
+        if ( null == beanInfo ) {
+            throw new IllegalStateException( String.format( "maybe missing getter/setter method in entity class '%s' ?", entityClass.getName() ) );
+        }
+
         Field field;
         ColumnAnnotation column;
+        AttributeMetadata attributeMetadata;
+        Map<Class<?>, ReferenceMetadata> relationEntityClasses = new HashMap<>();
+
+        Class<?> targetEntity;
+        Relation relationship;
+        ReferenceMetadata referenceMetadata;
 
         for ( PropertyDescriptor pd : beanInfo.getPropertyDescriptors() ) {
             if ( "class".equals( pd.getDisplayName() ) ) {
@@ -124,19 +129,52 @@ public class MetadataFactory {
                 throw new IllegalStateException( String.format( "No such field '%s' on entity '%s'", pd.getName(), entityClass.getName() ) );
             }
 
+            relationship = new Relation( field, pd );
             column = new ColumnAnnotation( field, pd );
 
-            metadata.add( new AttributeMetadata()
-                    .setField( field )
-                    .setJavaName( field.getName() )
-                    .setNullable( column.isNullable() )
-                    .setJdbcName( column.getJdbcName() )
-                    .setReadMethod( pd.getReadMethod() )
-                    .setWriteMethod( pd.getWriteMethod() )
-                    .setPrimary( getJpaAnnotation( Id.class, field, pd ) != null ) );
+            if ( relationship.hasRelationship() ) {
+                referenceMetadata = createAttributeMetadata( new ReferenceMetadata(), column, field, pd )
+                        .setLazy( relationship.isLazy() );
+
+                targetEntity = relationship.getTargetEntity();
+                if ( null == targetEntity || void.class == targetEntity || Void.class == targetEntity ) {
+                    // see attribute targetEntity of '@ManyToMany, @OneToMany, @ManyToOne, @OneToOne'
+                    targetEntity = field.getType();
+                }
+
+                relationEntityClasses.put( targetEntity, referenceMetadata );
+                referenceMetadataList.add( referenceMetadata );
+
+                continue;
+            }
+
+            attributeMetadata = createAttributeMetadata( new AttributeMetadata(), column, field, pd );
+            attributeMetadataList.add( attributeMetadata );
+
+            if ( attributeMetadata.isPrimary() ) {
+                if ( metadata.getId() != null ) {
+                    throw new DuplicatePrimaryKeyException( String.format(
+                            "Duplicate primary key on entity '%s'", entityClass.getName() ) );
+                }
+
+                metadata.setId( attributeMetadata );
+            }
         }
 
-        return metadata;
+        return relationEntityClasses;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private static <E extends AttributeMetadata> E createAttributeMetadata(
+            E metadata, ColumnAnnotation column, Field field, PropertyDescriptor pd ) {
+
+        return ( E ) metadata.setField( field )
+                .setJavaName( field.getName() )
+                .setNullable( column.isNullable() )
+                .setJdbcName( column.getJdbcName() )
+                .setReadMethod( pd.getReadMethod() )
+                .setWriteMethod( pd.getWriteMethod() )
+                .setPrimary( getJpaAnnotation( Id.class, field, pd ) != null );
     }
 
     private static Field getDeclareField( Class<?> clazz, String field, boolean isBoolean ) {
@@ -161,9 +199,10 @@ public class MetadataFactory {
     }
 
     private static <T extends Annotation> T getJpaAnnotation( Class<T> clazz, Field field, PropertyDescriptor pd ) {
-        Method method = pd.getReadMethod();
         T column;
+        Method method;
 
+        method = pd.getReadMethod();
         if ( method != null ) {
             column = method.getAnnotation( clazz );
 
@@ -208,6 +247,87 @@ public class MetadataFactory {
 
         private boolean isNullable() {
             return joinColumn != null ? joinColumn.nullable() : column.nullable();
+        }
+    }
+
+    private static class Relation {
+        private final OneToOne oneToOne;
+        private final OneToMany oneToMany;
+        private final ManyToOne manyToOne;
+        private final ManyToMany manyToMany;
+
+        private Relation( Field field, PropertyDescriptor pd ) {
+            oneToOne = getJpaAnnotation( OneToOne.class, field, pd );
+            oneToMany = getJpaAnnotation( OneToMany.class, field, pd );
+            manyToOne = getJpaAnnotation( ManyToOne.class, field, pd );
+            manyToMany = getJpaAnnotation( ManyToMany.class, field, pd );
+
+            int relationshipCount = 0;
+
+            if ( oneToOne != null ) {
+                relationshipCount += 1;
+            }
+
+            if ( oneToMany != null ) {
+                relationshipCount += 1;
+            }
+
+            if ( manyToOne != null ) {
+                relationshipCount += 1;
+            }
+
+            if ( manyToMany != null ) {
+                relationshipCount += 1;
+            }
+
+            if ( relationshipCount > 1 ) {
+                throw new IllegalStateException( String.format( "There multi-relationship on attribute '%s' of entity class '%s'",
+                        field.getName(), field.getDeclaringClass().getName() ) );
+            }
+        }
+
+        private boolean isLazy() {
+            if ( oneToOne != null ) {
+                return oneToOne.fetch() == FetchType.LAZY;
+            }
+
+            if ( oneToMany != null ) {
+                return oneToMany.fetch() == FetchType.LAZY;
+            }
+
+            if ( manyToOne != null ) {
+                return manyToOne.fetch() == FetchType.LAZY;
+            }
+
+            if ( manyToMany != null ) {
+                return manyToMany.fetch() == FetchType.LAZY;
+            }
+
+            return false;
+        }
+
+        private Class<?> getTargetEntity() {
+            if ( oneToOne != null ) {
+                return oneToOne.targetEntity();
+            }
+
+            if ( oneToMany != null ) {
+                return oneToMany.targetEntity();
+            }
+
+            if ( manyToOne != null ) {
+                return manyToOne.targetEntity();
+            }
+
+            if ( manyToMany != null ) {
+                return manyToMany.targetEntity();
+            }
+
+            return null;
+        }
+
+        private boolean hasRelationship() {
+            return oneToOne != null || oneToMany != null || manyToOne != null || manyToMany != null;
         }
     }
 }

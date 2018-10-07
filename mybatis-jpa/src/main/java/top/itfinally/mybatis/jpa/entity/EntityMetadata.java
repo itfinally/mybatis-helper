@@ -1,6 +1,7 @@
 package top.itfinally.mybatis.jpa.entity;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <pre>
@@ -18,6 +19,7 @@ public class EntityMetadata {
     private Class<?> entityClass;
     private AttributeMetadata id;
     private List<AttributeMetadata> columns;
+    private List<ReferenceMetadata> referenceColumns;
 
     public String getTableName() {
         return tableName;
@@ -53,5 +55,31 @@ public class EntityMetadata {
     public EntityMetadata setColumns( List<AttributeMetadata> columns ) {
         this.columns = columns;
         return this;
+    }
+
+    public List<ReferenceMetadata> getReferenceColumns() {
+        return referenceColumns;
+    }
+
+    public EntityMetadata setReferenceColumns( List<ReferenceMetadata> referenceColumns ) {
+        this.referenceColumns = referenceColumns;
+        return this;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( this == o ) return true;
+        if ( !( o instanceof EntityMetadata ) ) return false;
+        EntityMetadata metadata = ( EntityMetadata ) o;
+        return Objects.equals( getTableName(), metadata.getTableName() ) &&
+                Objects.equals( getEntityClass(), metadata.getEntityClass() ) &&
+                Objects.equals( getId(), metadata.getId() ) &&
+                Objects.equals( getColumns(), metadata.getColumns() ) &&
+                Objects.equals( getReferenceColumns(), metadata.getReferenceColumns() );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( getTableName(), getEntityClass(), getId(), getColumns(), getReferenceColumns() );
     }
 }

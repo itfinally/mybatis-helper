@@ -2,7 +2,6 @@ package top.itfinally.mybatis.jpa.context;
 
 import top.itfinally.mybatis.core.ThreadLocalDelegatedFactory;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
-import top.itfinally.mybatis.jpa.context.MetadataFactory;
 
 import java.lang.reflect.Method;
 

@@ -4,6 +4,7 @@ package top.itfinally.mybatis.jpa.criteria.query;
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.Predicate;
 
+import javax.persistence.criteria.Order;
 import java.util.Collection;
 
 /**
@@ -35,13 +36,17 @@ public interface CriteriaBuilder {
 
     <Entity> Expression<Entity> count( Expression<?> path );
 
-    Predicate isTrue( Expression<?> path );
+    Order asc( Expression<?> expression );
 
-    Predicate isFalse( Expression<?> path );
+    Order desc( Expression<?> expression );
 
-    Predicate isNull( Expression<?> path );
+    Predicate isTrue( Expression<?> expression );
 
-    Predicate isNotNull( Expression<?> path );
+    Predicate isFalse( Expression<?> expression );
+
+    Predicate isNull( Expression<?> expression );
+
+    Predicate isNotNull( Expression<?> expression );
 
     Predicate equal( Expression<?> left, Expression<?> right );
 

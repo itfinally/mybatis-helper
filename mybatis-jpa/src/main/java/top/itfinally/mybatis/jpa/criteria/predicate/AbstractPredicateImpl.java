@@ -1,9 +1,8 @@
-package top.itfinally.mybatis.jpa.criteria.expression;
+package top.itfinally.mybatis.jpa.criteria.predicate;
 
 import top.itfinally.mybatis.jpa.criteria.Predicate;
 import top.itfinally.mybatis.jpa.criteria.path.ExpressionImpl;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 
 import java.util.concurrent.atomic.AtomicBoolean;

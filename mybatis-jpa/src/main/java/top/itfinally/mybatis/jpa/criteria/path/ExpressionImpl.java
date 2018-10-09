@@ -2,7 +2,6 @@ package top.itfinally.mybatis.jpa.criteria.path;
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
-import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.Predicate;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 

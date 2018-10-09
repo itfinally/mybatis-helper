@@ -12,5 +12,5 @@ package top.itfinally.mybatis.jpa.criteria.query;
  * </pre>
  */
 public interface AbstractSubQuery {
-    <T> SubQuery<T> subQuery( Class<T> entityClass );
+    <T> SubQuery<T> subQuery();
 }

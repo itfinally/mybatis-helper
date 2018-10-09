@@ -20,15 +20,10 @@ import java.util.List;
  */
 public interface SubQuery<Entity> extends AbstractQuery<Entity>, Expression<Entity> {
 
-    SubQuery<Entity> select( Reference<?> path );
-
-    SubQuery<Entity> select( Collection<Reference<?>> path );
+    SubQuery<Entity> select( Reference<?>... path );
 
     @Override
-    SubQuery<Entity> where( Expression<Boolean> restriction );
-
-    @Override
-    SubQuery<Entity> where( List<Expression<Boolean>> restrictions );
+    SubQuery<Entity> where( Expression<Boolean>... restriction );
 
     SubQuery<Entity> groupBy( Reference<?> restriction );
 

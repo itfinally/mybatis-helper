@@ -20,15 +20,10 @@ import java.util.List;
  */
 public interface CriteriaQuery<Entity> extends AbstractQuery<Entity>, AbstractSubQuery {
 
-    CriteriaQuery<Entity> select( Reference<?> path );
-
-    CriteriaQuery<Entity> select( Collection<Reference<?>> path );
+    CriteriaQuery<Entity> select( Reference<?>... path );
 
     @Override
-    CriteriaQuery<Entity> where( Expression<Boolean> restriction );
-
-    @Override
-    CriteriaQuery<Entity> where( List<Expression<Boolean>> restrictions );
+    CriteriaQuery<Entity> where( Expression<Boolean>... restrictions );
 
     CriteriaQuery<Entity> groupBy( Reference<?> restriction );
 

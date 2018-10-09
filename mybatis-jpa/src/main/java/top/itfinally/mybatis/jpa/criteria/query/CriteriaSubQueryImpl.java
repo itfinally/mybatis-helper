@@ -26,7 +26,7 @@ public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> impleme
     private final AbstractSubQuery parent;
     private final QueryCollector queryCollector;
 
-    public CriteriaSubQueryImpl( CriteriaBuilder builder, Class<Entity> entityClass, AbstractSubQuery parentQuery ) {
+    public CriteriaSubQueryImpl( CriteriaBuilder builder, AbstractSubQuery parentQuery ) {
         super( builder, null );
 
         this.parent = parentQuery;
@@ -39,14 +39,8 @@ public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> impleme
     }
 
     @Override
-    public SubQuery<Entity> select( Reference<?> path ) {
-        queryCollector().addSelection( Lists.<Reference<?>>newArrayList( path ) );
-        return this;
-    }
-
-    @Override
-    public SubQuery<Entity> select( Collection<Reference<?>> path ) {
-        queryCollector().addSelection( path );
+    public SubQuery<Entity> select( Reference<?>... path ) {
+        queryCollector().addSelection( Lists.newArrayList( path ) );
         return this;
     }
 
@@ -56,14 +50,8 @@ public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> impleme
     }
 
     @Override
-    public SubQuery<Entity> where( Expression<Boolean> restriction ) {
+    public SubQuery<Entity> where( Expression<Boolean>... restriction ) {
         queryCollector().addCondition( Lists.newArrayList( restriction ) );
-        return this;
-    }
-
-    @Override
-    public SubQuery<Entity> where( List<Expression<Boolean>> restrictions ) {
-        queryCollector().addCondition( restrictions );
         return this;
     }
 
@@ -89,7 +77,7 @@ public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> impleme
     }
 
     @Override
-    public <T> SubQuery<T> subQuery( Class<T> entityClass ) {
-        return queryCollector().subQuery( entityClass );
+    public <T> SubQuery<T> subQuery() {
+        return queryCollector().subQuery();
     }
 }

@@ -2,18 +2,13 @@ package top.itfinally.mybatis.jpa.criteria.path;
 
 import top.itfinally.mybatis.jpa.criteria.Path;
 import top.itfinally.mybatis.jpa.criteria.Root;
-import top.itfinally.mybatis.jpa.criteria.expression.AttributePath;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
-import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
-import top.itfinally.mybatis.jpa.criteria.render.RootWrapper;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.PathMetadata;
 import top.itfinally.mybatis.jpa.entity.ReferenceMetadata;
 import top.itfinally.mybatis.jpa.exception.NoSuchAttributeException;
-
-import java.util.Map;
 
 /**
  * <pre>

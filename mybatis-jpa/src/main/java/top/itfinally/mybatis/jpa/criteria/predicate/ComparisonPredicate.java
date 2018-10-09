@@ -1,4 +1,4 @@
-package top.itfinally.mybatis.jpa.criteria.expression;
+package top.itfinally.mybatis.jpa.criteria.predicate;
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
@@ -23,7 +23,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
     private final Operator operator;
     private final Expression<?> leftVal;
-    private final DirectValWrapper rightVal;
+    private final ValueWrapper rightVal;
 
     public ComparisonPredicate( CriteriaBuilder builder, Operator operator, Expression<?> left, Object right ) {
         super( builder );
@@ -33,7 +33,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
         this.operator = operator;
         this.leftVal = left;
-        this.rightVal = new DirectValWrapper( criteriaBuilder(), queryCollector(), right );
+        this.rightVal = new ValueWrapper( criteriaBuilder(), queryCollector(), right );
     }
 
     @Override

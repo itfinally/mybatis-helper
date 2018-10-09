@@ -1,10 +1,7 @@
-package top.itfinally.mybatis.jpa.criteria.expression;
+package top.itfinally.mybatis.jpa.criteria.path;
 
-import com.google.common.base.Strings;
 import top.itfinally.mybatis.jpa.criteria.Path;
 import top.itfinally.mybatis.jpa.criteria.Root;
-import top.itfinally.mybatis.jpa.criteria.path.PathImpl;
-import top.itfinally.mybatis.jpa.criteria.path.RootImpl;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;

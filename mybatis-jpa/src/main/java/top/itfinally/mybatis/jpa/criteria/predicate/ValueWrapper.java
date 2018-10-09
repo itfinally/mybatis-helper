@@ -1,4 +1,4 @@
-package top.itfinally.mybatis.jpa.criteria.expression;
+package top.itfinally.mybatis.jpa.criteria.predicate;
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.path.ExpressionImpl;
@@ -18,11 +18,11 @@ import top.itfinally.mybatis.jpa.criteria.render.Writable;
  * *********************************************
  * </pre>
  */
-public class DirectValWrapper extends ExpressionImpl<Object> implements Expression<Object>, Writable {
+public class ValueWrapper extends ExpressionImpl<Object> implements Expression<Object>, Writable {
 
     private final Object val;
 
-    public DirectValWrapper( CriteriaBuilder builder, QueryCollector queryCollector, Object val ) {
+    public ValueWrapper( CriteriaBuilder builder, QueryCollector queryCollector, Object val ) {
         super( builder, queryCollector );
 
         this.val = val;

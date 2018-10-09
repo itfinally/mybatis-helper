@@ -20,7 +20,5 @@ public interface AbstractQuery<Entity> extends AbstractSubQuery {
 
     <X> Root<X> from( Class<X> entityClass );
 
-    AbstractQuery<Entity> where( Expression<Boolean> restriction );
-
-    AbstractQuery<Entity> where( List<Expression<Boolean>> restrictions );
+    AbstractQuery<Entity> where( Expression<Boolean>... restriction );
 }

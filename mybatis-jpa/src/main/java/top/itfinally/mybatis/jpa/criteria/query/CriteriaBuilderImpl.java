@@ -2,11 +2,12 @@ package top.itfinally.mybatis.jpa.criteria.query;
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.Predicate;
-import top.itfinally.mybatis.jpa.criteria.expression.ComparisonPredicate;
+import top.itfinally.mybatis.jpa.criteria.predicate.*;
 
+import javax.persistence.criteria.Order;
 import java.util.Collection;
 
-import static top.itfinally.mybatis.jpa.criteria.expression.ComparisonPredicate.Operator;
+import static top.itfinally.mybatis.jpa.criteria.predicate.ComparisonPredicate.Operator;
 
 /**
  * <pre>
@@ -41,23 +42,33 @@ public class CriteriaBuilderImpl implements CriteriaBuilder {
     }
 
     @Override
-    public Predicate isTrue( Expression<?> path ) {
-        return null;
+    public Order asc( Expression<?> expression ) {
+        return new OrderImpl( expression, true );
     }
 
     @Override
-    public Predicate isFalse( Expression<?> path ) {
-        return null;
+    public Order desc( Expression<?> expression ) {
+        return new OrderImpl( expression, false );
     }
 
     @Override
-    public Predicate isNull( Expression<?> path ) {
-        return null;
+    public Predicate isTrue( Expression<?> expression ) {
+        return new BooleanAssertionPredicate( this, expression, true );
     }
 
     @Override
-    public Predicate isNotNull( Expression<?> path ) {
-        return null;
+    public Predicate isFalse( Expression<?> expression ) {
+        return new BooleanAssertionPredicate( this, expression, false );
+    }
+
+    @Override
+    public Predicate isNull( Expression<?> expression ) {
+        return new NullnessPredicate( this, expression );
+    }
+
+    @Override
+    public Predicate isNotNull( Expression<?> expression ) {
+        return new NullnessPredicate( this, expression ).not();
     }
 
     @Override
@@ -131,12 +142,12 @@ public class CriteriaBuilderImpl implements CriteriaBuilder {
     }
 
     @Override
-    public Predicate in( Expression<?> path, Expression<?> expression ) {
-        return null;
+    public Predicate in( Expression<?> expression, Expression<?> inExpression ) {
+        return new InPredicate( this, expression, inExpression );
     }
 
     @Override
-    public Predicate in( Expression<?> path, Collection<?> values ) {
-        return null;
+    public Predicate in( Expression<?> expression, Collection<?> values ) {
+        return new InPredicate( this, expression, values );
     }
 }

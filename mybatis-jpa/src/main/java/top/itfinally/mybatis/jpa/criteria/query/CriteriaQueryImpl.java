@@ -9,7 +9,6 @@ import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 
 import javax.persistence.criteria.Order;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,14 +38,8 @@ public class CriteriaQueryImpl<Entity> extends AbstractNodeAdapter implements Cr
     }
 
     @Override
-    public CriteriaQuery<Entity> select( Reference<?> path ) {
-        queryCollector().addSelection( Lists.<Reference<?>>newArrayList( path ) );
-        return this;
-    }
-
-    @Override
-    public CriteriaQuery<Entity> select( Collection<Reference<?>> paths ) {
-        queryCollector().addSelection( paths );
+    public CriteriaQuery<Entity> select( Reference<?>... path ) {
+        queryCollector().addSelection( Lists.newArrayList( path ) );
         return this;
     }
 
@@ -56,14 +49,8 @@ public class CriteriaQueryImpl<Entity> extends AbstractNodeAdapter implements Cr
     }
 
     @Override
-    public CriteriaQuery<Entity> where( Expression<Boolean> restriction ) {
+    public CriteriaQuery<Entity> where( Expression<Boolean>... restriction ) {
         queryCollector().addCondition( Lists.newArrayList( restriction ) );
-        return this;
-    }
-
-    @Override
-    public CriteriaQuery<Entity> where( List<Expression<Boolean>> restrictions ) {
-        queryCollector().addCondition( restrictions );
         return this;
     }
 
@@ -89,8 +76,8 @@ public class CriteriaQueryImpl<Entity> extends AbstractNodeAdapter implements Cr
     }
 
     @Override
-    public <T> SubQuery<T> subQuery( Class<T> entityClass ) {
-        return queryCollector().subQuery( entityClass );
+    public <T> SubQuery<T> subQuery() {
+        return queryCollector().subQuery();
     }
 
     @Override

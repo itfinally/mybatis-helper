@@ -5,9 +5,8 @@ import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import top.itfinally.mybatis.jpa.context.MetadataFactory;
 import top.itfinally.mybatis.jpa.criteria.*;
-import top.itfinally.mybatis.jpa.criteria.expression.AttributePath;
+import top.itfinally.mybatis.jpa.criteria.path.AttributePath;
 import top.itfinally.mybatis.jpa.criteria.path.RootImpl;
-import top.itfinally.mybatis.jpa.criteria.render.OrderConcurrentHashMap;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
@@ -126,11 +125,11 @@ public class QueryCollector implements Writable {
         } );
     }
 
-    public <Entity> SubQuery<Entity> subQuery( final Class<Entity> entityClass ) {
+    public <Entity> SubQuery<Entity> subQuery() {
         return concurrentChecking( new Supplier<SubQuery<Entity>>() {
             @Override
             public SubQuery<Entity> get() {
-                SubQuery<Entity> subQuery = new CriteriaSubQueryImpl<>( criteriaBuilder, entityClass, parentQuery );
+                SubQuery<Entity> subQuery = new CriteriaSubQueryImpl<>( criteriaBuilder, parentQuery );
 
                 subQueries.add( subQuery );
 
@@ -169,12 +168,15 @@ public class QueryCollector implements Writable {
         String fromClause = completeRoots( parameters );
         String whereClause = completeConditions( parameters );
 
-        StringBuilder sql = new StringBuilder( String.format( " select %s from %s ", selectionClause, fromClause ) );
+        StringBuilder sql = new StringBuilder( String.format( "select %s from %s", selectionClause, fromClause ) );
         if ( !Strings.isNullOrEmpty( whereClause ) ) {
             sql.append( " where " ).append( whereClause );
         }
 
-        return sql.toString();
+        // mybatis sql script mark
+        return subQuery
+                ? String.format( "( %s ) ", sql.toString() )
+                : String.format( "<script> %s </script>", sql.toString() );
     }
 
     private String completeSelections( ParameterBus parameters ) {
@@ -206,13 +208,13 @@ public class QueryCollector implements Writable {
 
             attributeString = ( ( AttributePath<?> ) item ).toFormatString( parameters );
             if ( !Strings.isNullOrEmpty( item.getAlias() ) ) {
-                attributeString += String.format( " as %s ", item.getAlias() );
+                attributeString += String.format( " as %s", item.getAlias() );
             }
 
             selectionStrings.add( attributeString );
         }
 
-        return Joiner.on( " , " ).join( selectionStrings );
+        return Joiner.on( ", " ).join( selectionStrings );
     }
 
     private String completeRoots( ParameterBus parameters ) {
@@ -232,7 +234,7 @@ public class QueryCollector implements Writable {
                 continue;
             }
 
-            items[ item.index ] = String.format( " %s %s %s ", renderJoinType( item.value.getType(), item.value.getClassName() ),
+            items[ item.index ] = String.format( "%s %s %s", renderJoinType( item.value.getType(), item.value.getClassName() ),
                     metadata.getTableName(), ( ( Writable ) root ).toFormatString( parameters ) );
         }
 
@@ -240,7 +242,7 @@ public class QueryCollector implements Writable {
         List<String> tables = new ArrayList<>();
         for ( Root<?> root : unallocatedRoots ) {
             metadata = root.getModel().getEntityMetadata();
-            tables.add( String.format( " %s %s ", metadata.getTableName(), ( ( Writable ) root ).toFormatString( parameters ) ) );
+            tables.add( String.format( "%s %s", metadata.getTableName(), ( ( Writable ) root ).toFormatString( parameters ) ) );
         }
 
         if ( tables.isEmpty() ) {
@@ -263,9 +265,9 @@ public class QueryCollector implements Writable {
             expressions.add( ( ( Writable ) expression ).toFormatString( parameters ) );
         }
 
-        StringBuilder fromClause = new StringBuilder( Joiner.on( " , " ).join( tables ) );
+        StringBuilder fromClause = new StringBuilder( Joiner.on( ", " ).join( tables ) );
         if ( !joiners.isEmpty() ) {
-            fromClause.append( Joiner.on( " " ).join( joiners ) );
+            fromClause.append( " " ).append( Joiner.on( " " ).join( joiners ) );
 
             if ( !expressions.isEmpty() ) {
                 fromClause.append( " on " ).append( Joiner.on( " and " ).join( expressions ) );

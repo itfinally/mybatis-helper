@@ -6,17 +6,23 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import top.itfinally.mybatis.jpa.context.MetadataFactory;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.mapper.BasicConditionalMapper;
+import top.itfinally.mybatis.jpa.criteria.query.CriteriaQueryManager;
+import top.itfinally.mybatis.jpa.entity.EntityMetadata;
+import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
 import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
-import top.itfinally.mybatis.jpa.context.ResultMapContextHolder;
+import top.itfinally.mybatis.jpa.context.ResultMapBuilder;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static top.itfinally.mybatis.jpa.context.CrudContextHolder.ContextType.JPA;
+import static top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface.ENTITY_CLASS;
 
 /**
  * <pre>
@@ -30,7 +36,6 @@ import java.util.Set;
  * </pre>
  */
 public class MybatisJpaMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
-    private volatile BasicConditionalMapper conditionalMapper;
     private final Configuration configuration;
     private final Class<Entity> entityClass;
     private final Set<String> methodNames;
@@ -53,43 +58,40 @@ public class MybatisJpaMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
     @Override
     public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
         if ( proxy instanceof BasicCrudMapper ) {
-
-            boolean isCriteriaQuery = method.getName().equals( "getCriteriaBuilder" );
-            if ( methodNames.contains( method.getName() ) || isCriteriaQuery ) {
-                CrudContextHolder.setContext( entityClass, method );
-                ResultMapContextHolder.resultMapInitializing( configuration, CrudContextHolder.getContext() );
-
-                if ( isCriteriaQuery ) {
-                    conditionMapperInitializing();
-                    return null;
-                }
+            if ( method.getReturnType() == CriteriaQueryManager.class ) {
+                return new CriteriaQueryManager<>( BasicConditionalMapperInjector.conditionalMapper, entityClass );
             }
-        }
 
-        if ( BasicConditionalMapper.class.isAssignableFrom( proxy.getClass() ) ) {
-            ;
+            if ( methodNames.contains( method.getName() ) ) {
+                CrudContextHolder.buildEntityAndSetContext( entityClass, method );
+                ResultMapBuilder.resultMapInitializing( configuration, CrudContextHolder.getContext() );
+            }
+
+        } else if ( proxy instanceof BasicCriteriaQueryInterface ) {
+            Class<?> clazz = ( Class<?> ) ( ( Map ) args[ 0 ] ).get( ENTITY_CLASS );
+            EntityMetadata metadata = null;
+
+            if ( !Map.class.isAssignableFrom( clazz ) ) {
+                metadata = MetadataFactory.getMetadata( clazz );
+            }
+
+            CrudContextHolder.setContext( new CrudContextHolder.Context( JPA, metadata, method ) );
+
+            // use 'getResultMapWithMapReturned' if return type is Map.class
+            if ( !Map.class.isAssignableFrom( clazz ) ) {
+                ResultMapBuilder.resultMapInitializing( configuration, CrudContextHolder.getContext() );
+            }
         }
 
         return super.invoke( proxy, method, args );
     }
 
-    private void conditionMapperInitializing() {
-        if ( null == conditionalMapper ) {
-            synchronized ( this ) {
-                if ( null == conditionalMapper ) {
-                    conditionalMapper = BasicConditionalMapperInjector.conditionalMapper;
-                    BasicConditionalMapperInjector.conditionalMapper = null;
-                }
-            }
-        }
-    }
-
     @Component
     public static class BasicConditionalMapperInjector {
-        private static BasicConditionalMapper conditionalMapper;
+        private static volatile BasicCriteriaQueryInterface conditionalMapper;
 
         @Autowired
-        public void setConditionalMapper( BasicConditionalMapper conditionalMapper ) {
+        public void setConditionalMapper( BasicCriteriaQueryInterface conditionalMapper ) {
             BasicConditionalMapperInjector.conditionalMapper = conditionalMapper;
         }
     }

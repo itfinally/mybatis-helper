@@ -7,7 +7,7 @@ import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.PathMetadata;
-import top.itfinally.mybatis.jpa.entity.ReferenceMetadata;
+import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 import top.itfinally.mybatis.jpa.exception.NoSuchAttributeException;
 
 /**
@@ -43,7 +43,7 @@ public class PathImpl<Entity> extends ExpressionImpl<Entity> implements Path<Ent
             }
         }
 
-        for ( ReferenceMetadata item : entityMetadata.getReferenceColumns() ) {
+        for ( ForeignAttributeMetadata item : entityMetadata.getReferenceColumns() ) {
             if ( item.getJavaName().equals( attributeName ) ) {
                 return item;
             }

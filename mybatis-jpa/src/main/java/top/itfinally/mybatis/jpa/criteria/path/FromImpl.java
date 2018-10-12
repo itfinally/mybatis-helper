@@ -4,13 +4,10 @@ import top.itfinally.mybatis.jpa.criteria.*;
 import top.itfinally.mybatis.jpa.entity.JoinMetadata;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
-import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
-import top.itfinally.mybatis.jpa.entity.ReferenceMetadata;
+import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
 import javax.persistence.criteria.JoinType;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <pre>
@@ -39,13 +36,13 @@ public class FromImpl<Entity> extends PathImpl<Entity> implements From<Entity> {
         AttributeMetadata attributeMetadata = getRealType( Path.class, this )
                 .get( attributeName ).getModel().getAttributeMetadata();
 
-        if ( !( attributeMetadata instanceof ReferenceMetadata ) ) {
+        if ( !( attributeMetadata instanceof ForeignAttributeMetadata ) ) {
             throw new IllegalStateException( String.format( "Attribute '%s' of entity '%s' is not a foreign key ( " +
                             "Maybe you missing declared it by something like @OneToOne annotation ? )",
                     attributeMetadata.getJavaName(), attributeMetadata.getField().getDeclaringClass().getName() ) );
         }
 
-        queryCollector().addJoiner( new JoinMetadata( getRealType( ReferenceMetadata.class, attributeMetadata )
+        queryCollector().addJoiner( new JoinMetadata( getRealType( ForeignAttributeMetadata.class, attributeMetadata )
                 .getEntityMetadata().getEntityClass().getName(), jt ) );
 
         return new JoinImpl<>( criteriaBuilder(), queryCollector(), this );

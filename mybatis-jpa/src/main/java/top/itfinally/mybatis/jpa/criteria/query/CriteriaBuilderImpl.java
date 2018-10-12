@@ -21,6 +21,7 @@ import static top.itfinally.mybatis.jpa.criteria.predicate.ComparisonPredicate.O
  * </pre>
  */
 public class CriteriaBuilderImpl implements CriteriaBuilder {
+
     @Override
     public CriteriaQuery<Object> createQuery() {
         return new CriteriaQueryImpl<>( this );

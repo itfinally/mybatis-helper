@@ -12,10 +12,9 @@ import top.itfinally.mybatis.jpa.criteria.render.Writable;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.JoinMetadata;
 
+import javax.persistence.Table;
 import javax.persistence.criteria.JoinType;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,11 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </pre>
  */
 public class QueryCollector implements Writable {
-    private static ConcurrentMap<Class<?>, EntityMetadata> entityMetadataBuffer = new ConcurrentHashMap<>( 32 );
-
     private final AtomicInteger version = new AtomicInteger( 0 );
     private final CriteriaBuilder criteriaBuilder;
-    private final AbstractQuery<?> parentQuery;
+    private final AbstractQuery<?> parnet;
+    private final AbstractQuery<?> owner;
     private final boolean subQuery;
 
     // expression
@@ -51,11 +49,20 @@ public class QueryCollector implements Writable {
     private List<SubQuery<?>> subQueries = new ArrayList<>();
     private List<Reference<?>> grouping = new ArrayList<>();
 
-    public QueryCollector( CriteriaBuilder criteriaBuilder, AbstractQuery<?> parentQuery ) {
+    public QueryCollector( CriteriaBuilder criteriaBuilder, AbstractQuery<?> owner ) {
         this.criteriaBuilder = criteriaBuilder;
-        this.parentQuery = parentQuery;
+        this.parnet = null;
+        this.owner = owner;
 
-        this.subQuery = parentQuery instanceof SubQuery;
+        this.subQuery = owner instanceof SubQuery;
+    }
+
+    public QueryCollector( CriteriaBuilder criteriaBuilder, AbstractQuery<?> parent, AbstractQuery<?> owner ) {
+        this.criteriaBuilder = criteriaBuilder;
+        this.parnet = parent;
+        this.owner = owner;
+
+        this.subQuery = owner instanceof SubQuery;
     }
 
     public void addSelection( final Collection<Reference<?>> selections ) {
@@ -105,14 +112,14 @@ public class QueryCollector implements Writable {
 
     @SuppressWarnings( "unchecked" )
     public <T> Root<T> from( final Class<T> entityClass ) {
+        if ( entityClass.getAnnotation( Table.class ) == null ) {
+            throw new IllegalArgumentException( "Entity class must be marked with '@Table'" );
+        }
+
         return concurrentChecking( new Supplier<Root<T>>() {
             @Override
             public Root<T> get() {
-                if ( !entityMetadataBuffer.containsKey( entityClass ) ) {
-                    entityMetadataBuffer.putIfAbsent( entityClass, MetadataFactory.build( entityClass ) );
-                }
-
-                EntityMetadata entityMetadata = entityMetadataBuffer.get( entityClass );
+                EntityMetadata entityMetadata = MetadataFactory.getMetadata( entityClass );
                 String className = entityMetadata.getEntityClass().getName();
 
                 if ( !roots.containsKey( className ) ) {
@@ -129,7 +136,7 @@ public class QueryCollector implements Writable {
         return concurrentChecking( new Supplier<SubQuery<Entity>>() {
             @Override
             public SubQuery<Entity> get() {
-                SubQuery<Entity> subQuery = new CriteriaSubQueryImpl<>( criteriaBuilder, parentQuery );
+                SubQuery<Entity> subQuery = new CriteriaSubQueryImpl<>( criteriaBuilder, owner );
 
                 subQueries.add( subQuery );
 

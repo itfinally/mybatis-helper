@@ -8,15 +8,17 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
+import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.core.MappedStatementCreator;
 import top.itfinally.mybatis.core.MybatisCoreConfiguration;
-import top.itfinally.mybatis.jpa.context.ResultMapContextHolder;
+import top.itfinally.mybatis.jpa.context.ResultMapBuilder;
+import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
 import top.itfinally.mybatis.jpa.sql.BasicCrudSqlCreator;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
+import top.itfinally.mybatis.jpa.sql.JpaSqlCreator;
 import top.itfinally.mybatis.jpa.sql.MysqlCrudSqlCreator;
 
 import java.lang.reflect.InvocationTargetException;
@@ -44,14 +46,15 @@ import java.util.*;
 } )
 public class JpaPrepareInterceptor implements Interceptor {
     private final BasicCrudSqlCreator sqlCreator;
+    private final JpaSqlCreator jpaSqlCreator;
 
     private final Map<String, Class<?>[]> parameters;
     private final Map<String, Method> methods;
 
-    public JpaPrepareInterceptor( MybatisJpaConfig jpaConfig, ApplicationContext context ) {
+    public JpaPrepareInterceptor( MybatisJpaConfig jpaConfig, Configuration configuration ) {
         switch ( jpaConfig.getDatabaseId() ) {
             case MybatisCoreConfiguration.MYSQL: {
-                sqlCreator = context.getBean( MysqlCrudSqlCreator.class );
+                sqlCreator = new MysqlCrudSqlCreator( configuration );
                 break;
             }
 
@@ -59,6 +62,8 @@ public class JpaPrepareInterceptor implements Interceptor {
                 throw new UnsupportedOperationException( String.format( "No match database '%s'", jpaConfig.getDatabaseId() ) );
             }
         }
+
+        jpaSqlCreator = new JpaSqlCreator( configuration );
 
         Map<String, Method> methods = new HashMap<>();
         Map<String, Class<?>[]> parameters = new HashMap<>();
@@ -80,20 +85,15 @@ public class JpaPrepareInterceptor implements Interceptor {
 
         CrudContextHolder.clear();
 
-        Object[] args = invocation.getArgs();
-        MappedStatement mappedStatement = ( MappedStatement ) args[ 0 ];
-        Object unknownArgs = args[ 1 ];
+        if ( context.getContextType() == CrudContextHolder.ContextType.GENERAL ) {
+            genericQuery( invocation.getArgs(), context );
 
-        MappedStatement.Builder mappedStatementBuilder = MappedStatementCreator
-                .getMappedStatementBuilder( mappedStatement, getBoundSql( context, unknownArgs ) );
+        } else if ( context.getContextType() == CrudContextHolder.ContextType.JPA ) {
+            jpaQuery( invocation.getArgs(), context );
 
-        if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
-            ResultMap resultMap = ResultMapContextHolder.getResultMap( mappedStatement.getConfiguration(), context );
-            mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+        } else {
+            throw new IllegalStateException( "Unknown context type -> " + context.getContextType() );
         }
-
-
-        args[ 0 ] = mappedStatementBuilder.build();
 
         return invocation.proceed();
     }
@@ -105,6 +105,45 @@ public class JpaPrepareInterceptor implements Interceptor {
 
     @Override
     public void setProperties( Properties properties ) {
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private void jpaQuery( Object[] args, CrudContextHolder.Context context ) {
+        MappedStatement mappedStatement = ( MappedStatement ) args[ 0 ];
+        Map<String, Object> unknownArgs = ( Map<String, Object> ) args[ 1 ];
+
+        MappedStatement.Builder mappedStatementBuilder = MappedStatementCreator
+                .getMappedStatementBuilder( mappedStatement, jpaSqlCreator.buildSql( unknownArgs ) );
+
+        if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
+            ResultMap resultMap;
+
+            if ( Map.class.isAssignableFrom( ( Class<?> ) unknownArgs.get( BasicCriteriaQueryInterface.ENTITY_CLASS ) ) ) {
+                resultMap = ResultMapBuilder.getResultMapWithMapReturned( mappedStatement.getConfiguration() );
+                mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+
+            } else {
+                resultMap = ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
+                mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+            }
+        }
+
+        args[ 0 ] = mappedStatementBuilder.build();
+    }
+
+    private void genericQuery( Object[] args, CrudContextHolder.Context context ) {
+        MappedStatement mappedStatement = ( MappedStatement ) args[ 0 ];
+        Object unknownArgs = args[ 1 ];
+
+        MappedStatement.Builder mappedStatementBuilder = MappedStatementCreator
+                .getMappedStatementBuilder( mappedStatement, getBoundSql( context, unknownArgs ) );
+
+        if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
+            ResultMap resultMap = ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
+            mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+        }
+
+        args[ 0 ] = mappedStatementBuilder.build();
     }
 
     private BoundSql getBoundSql( CrudContextHolder.Context context, Object unknownArgs ) {

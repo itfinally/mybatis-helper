@@ -5,9 +5,10 @@ import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.Reference;
 import top.itfinally.mybatis.jpa.criteria.Root;
 import top.itfinally.mybatis.jpa.criteria.path.ExpressionImpl;
+import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
+import top.itfinally.mybatis.jpa.criteria.render.Writable;
 
 import javax.persistence.criteria.Order;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,16 +22,16 @@ import java.util.List;
  * *********************************************
  * </pre>
  */
-public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> implements SubQuery<Entity> {
+public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> implements SubQuery<Entity>, Writable {
 
-    private final AbstractSubQuery parent;
+    private final AbstractQuery<?> parent;
     private final QueryCollector queryCollector;
 
-    public CriteriaSubQueryImpl( CriteriaBuilder builder, AbstractSubQuery parentQuery ) {
+    public CriteriaSubQueryImpl( CriteriaBuilder builder, AbstractQuery<?> parentQuery ) {
         super( builder, null );
 
         this.parent = parentQuery;
-        this.queryCollector = new QueryCollector( criteriaBuilder(), ( AbstractQuery<?> ) parentQuery );
+        this.queryCollector = new QueryCollector( criteriaBuilder(), parentQuery, this );
     }
 
     @Override
@@ -79,5 +80,10 @@ public class CriteriaSubQueryImpl<Entity> extends ExpressionImpl<Entity> impleme
     @Override
     public <T> SubQuery<T> subQuery() {
         return queryCollector().subQuery();
+    }
+
+    @Override
+    public String toFormatString( ParameterBus parameters ) {
+        return queryCollector.toFormatString( parameters );
     }
 }

@@ -19,7 +19,7 @@ public class EntityMetadata {
     private Class<?> entityClass;
     private AttributeMetadata id;
     private List<AttributeMetadata> columns;
-    private List<ReferenceMetadata> referenceColumns;
+    private List<ForeignAttributeMetadata> referenceColumns;
 
     public String getTableName() {
         return tableName;
@@ -57,11 +57,11 @@ public class EntityMetadata {
         return this;
     }
 
-    public List<ReferenceMetadata> getReferenceColumns() {
+    public List<ForeignAttributeMetadata> getReferenceColumns() {
         return referenceColumns;
     }
 
-    public EntityMetadata setReferenceColumns( List<ReferenceMetadata> referenceColumns ) {
+    public EntityMetadata setReferenceColumns( List<ForeignAttributeMetadata> referenceColumns ) {
         this.referenceColumns = referenceColumns;
         return this;
     }

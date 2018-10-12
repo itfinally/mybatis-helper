@@ -8,7 +8,7 @@ import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.PathMetadata;
-import top.itfinally.mybatis.jpa.entity.ReferenceMetadata;
+import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
 /**
  * <pre>
@@ -34,7 +34,7 @@ public class AttributePath<Entity> extends PathImpl<Entity> implements Path<Enti
 
         this.root = ( RootImpl<Entity> ) root;
         this.attributeMetadata = attributeMetadata;
-        this.isRelationToken = attributeMetadata instanceof ReferenceMetadata;
+        this.isRelationToken = attributeMetadata instanceof ForeignAttributeMetadata;
     }
 
     @Override
@@ -50,11 +50,11 @@ public class AttributePath<Entity> extends PathImpl<Entity> implements Path<Enti
                     attributeMetadata.getJavaName(), attributeMetadata.getField().getDeclaringClass().getName() ) );
         }
 
-        ReferenceMetadata referenceMetadata = getRealType( ReferenceMetadata.class, attributeMetadata );
-        AttributeMetadata newAttributeMetadata = getAttribute( referenceMetadata.getEntityMetadata(), attributeName );
+        ForeignAttributeMetadata foreignAttributeMetadata = getRealType( ForeignAttributeMetadata.class, attributeMetadata );
+        AttributeMetadata newAttributeMetadata = getAttribute( foreignAttributeMetadata.getEntityMetadata(), attributeName );
 
         // Have problem if use 'exists' and 'join' with the same table
-        Root<?> root = queryCollector().from( referenceMetadata.getEntityMetadata().getEntityClass() );
+        Root<?> root = queryCollector().from( foreignAttributeMetadata.getEntityMetadata().getEntityClass() );
 
         return new AttributePath<>( criteriaBuilder(), queryCollector(), root, newAttributeMetadata );
     }

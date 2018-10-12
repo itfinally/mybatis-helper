@@ -29,6 +29,6 @@ public class PathMetadata {
     }
 
     public boolean isForeignKey() {
-        return attributeMetadata instanceof ReferenceMetadata;
+        return attributeMetadata instanceof ForeignAttributeMetadata;
     }
 }

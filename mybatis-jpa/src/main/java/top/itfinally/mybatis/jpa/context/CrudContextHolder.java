@@ -5,6 +5,8 @@ import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 
 import java.lang.reflect.Method;
 
+import static top.itfinally.mybatis.jpa.context.CrudContextHolder.ContextType.GENERAL;
+
 /**
  * <pre>
  * *********************************************
@@ -22,8 +24,12 @@ public class CrudContextHolder {
     private CrudContextHolder() {
     }
 
-    public static void setContext( Class<?> entityClass, Method method ) {
-        contextThreadLocal.set( new Context( MetadataFactory.build( entityClass ), method ) );
+    public static void buildEntityAndSetContext( Class<?> entityClass, Method method ) {
+        contextThreadLocal.set( new Context( GENERAL, MetadataFactory.getMetadata( entityClass ), method ) );
+    }
+
+    public static void setContext( Context context ) {
+        contextThreadLocal.set( context );
     }
 
     public static Context getContext() {
@@ -35,12 +41,18 @@ public class CrudContextHolder {
     }
 
     public static class Context {
+        private final ContextType contextType;
         private final EntityMetadata metadata;
         private final Method method;
 
-        private Context( EntityMetadata metadata, Method method ) {
+        public Context( ContextType contextType, EntityMetadata metadata, Method method ) {
+            this.contextType = contextType;
             this.metadata = metadata;
             this.method = method;
+        }
+
+        public ContextType getContextType() {
+            return contextType;
         }
 
         public EntityMetadata getMetadata() {
@@ -50,5 +62,9 @@ public class CrudContextHolder {
         public Method getMethod() {
             return method;
         }
+    }
+
+    public static enum ContextType {
+        JPA, GENERAL
     }
 }

@@ -27,7 +27,7 @@ import static top.itfinally.mybatis.jpa.mapper.BasicCrudMapper.*;
 @Component
 public class MysqlCrudSqlCreator extends BasicCrudSqlCreator {
 
-    protected MysqlCrudSqlCreator( Configuration configuration ) {
+    public MysqlCrudSqlCreator( Configuration configuration ) {
         super( configuration );
     }
 

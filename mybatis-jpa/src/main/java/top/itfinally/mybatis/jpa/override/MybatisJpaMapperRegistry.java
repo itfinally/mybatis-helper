@@ -1,13 +1,18 @@
 package top.itfinally.mybatis.jpa.override;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.binding.MapperProxyFactory;
 import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
+import top.itfinally.mybatis.jpa.exception.NoSuchActualTypeException;
+import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.concurrent.*;
 
 /**
@@ -22,7 +27,11 @@ import java.util.concurrent.*;
  * </pre>
  */
 public class MybatisJpaMapperRegistry extends MapperRegistry {
-    private final ConcurrentMap<Class<?>, FutureTask<MapperProxyFactory<?>>> knownMappers = new ConcurrentHashMap<>();
+    private static final Cache<Class<?>, MapperProxyFactory<?>> knownMappers = CacheBuilder.newBuilder()
+            .concurrencyLevel( Runtime.getRuntime().availableProcessors() )
+            .maximumSize( 1024 )
+            .initialCapacity( 64 )
+            .build();
 
     public MybatisJpaMapperRegistry( Configuration config ) {
         super( config );
@@ -30,37 +39,36 @@ public class MybatisJpaMapperRegistry extends MapperRegistry {
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <Mapper> Mapper getMapper( Class<Mapper> mapper, SqlSession sqlSession ) {
-        if ( !getMappers().contains( mapper ) ) {
-            throw new BindingException( "Type " + mapper + " is not known to the MapperRegistry." );
-        }
-
-        if ( !knownMappers.containsKey( mapper ) && null == knownMappers.putIfAbsent( mapper, makePromise( mapper ) ) ) {
-            knownMappers.get( mapper ).run();
+    public <Mapper> Mapper getMapper( final Class<Mapper> type, SqlSession sqlSession ) {
+        if ( !getMappers().contains( type ) ) {
+            throw new BindingException( "Type " + type + " is not known to the MapperRegistry." );
         }
 
         try {
-            return ( Mapper ) knownMappers.get( mapper ).get().newInstance( sqlSession );
+            return ( Mapper ) knownMappers.get( type, new Callable<MapperProxyFactory<?>>() {
+                @Override
+                public MapperProxyFactory<?> call() {
+                    if ( !BasicCrudMapper.class.isAssignableFrom( type ) ) {
+                        return new MybatisJpaMapperProxyFactory<>( null, type );
+                    }
 
-        } catch ( InterruptedException | ExecutionException e ) {
-            throw new IllegalStateException( "Failure to initializing mapper", e );
-        }
-    }
+                    Type[] types = type.getGenericInterfaces();
+                    if ( null == types || types.length <= 0 || !( types[ 0 ] instanceof ParameterizedType ) ) {
+                        throw new NoSuchActualTypeException( "No actual type found from generic type " +
+                                String.format( "( maybe you missing generic type, expect '%s<ActualType>' but got '%s' )",
+                                        type.getSimpleName(), type.getSimpleName() ) );
+                    }
 
-    private FutureTask<MapperProxyFactory<?>> makePromise( final Class<?> mapper ) {
-        return new FutureTask<>( new Callable<MapperProxyFactory<?>>() {
-            @Override
-            public MapperProxyFactory<?> call() {
-                Type[] types = mapper.getGenericInterfaces();
-                if ( null == types || types.length <= 0 || !( types[ 0 ] instanceof ParameterizedType ) ) {
-                    return new MybatisJpaMapperProxyFactory<>( null, mapper );
+                    ParameterizedType pt = ( ParameterizedType ) types[ 0 ];
+                    Class<?> entityClass = ( Class<?> ) pt.getActualTypeArguments()[ 0 ];
+
+                    return new MybatisJpaMapperProxyFactory<>( entityClass, type );
                 }
 
-                ParameterizedType pt = ( ParameterizedType ) types[ 0 ];
-                Class<?> entityClass = ( Class<?> ) pt.getActualTypeArguments()[ 0 ];
+            } ).newInstance( sqlSession );
 
-                return new MybatisJpaMapperProxyFactory<>( entityClass, mapper );
-            }
-        } );
+        } catch ( ExecutionException e ) {
+            throw new IllegalStateException( "Failure to initializing mapper", e.getCause() );
+        }
     }
 }

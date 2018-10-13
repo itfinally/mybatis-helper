@@ -1,7 +1,6 @@
 package top.itfinally.mybatis.jpa.override;
 
 import com.google.common.collect.Sets;
-import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
 import org.apache.ibatis.mapping.*;

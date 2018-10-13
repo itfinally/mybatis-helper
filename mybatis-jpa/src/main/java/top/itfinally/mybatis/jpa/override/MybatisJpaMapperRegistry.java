@@ -12,7 +12,6 @@ import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.concurrent.*;
 
 /**

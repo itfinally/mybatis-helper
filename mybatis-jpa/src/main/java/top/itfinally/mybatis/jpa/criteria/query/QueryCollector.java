@@ -201,7 +201,7 @@ public class QueryCollector implements Writable {
             }
 
             rootNames.add( ( ( RootImpl<?> ) item ).getModel().getEntityMetadata().getEntityClass().getName() );
-            selectionStrings.add( ( ( RootImpl<?> ) item ).toFormatString( parameters ) );
+            selectionStrings.add( String.format( "%s.*", ( ( RootImpl<?> ) item ).toFormatString( parameters ) ) );
         }
 
         // only attributes

@@ -116,16 +116,11 @@ public class JpaPrepareInterceptor implements Interceptor {
                 .getMappedStatementBuilder( mappedStatement, jpaSqlCreator.buildSql( unknownArgs ) );
 
         if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
-            ResultMap resultMap;
+            ResultMap resultMap = Map.class.isAssignableFrom( ( Class<?> ) unknownArgs.get( BasicCriteriaQueryInterface.ENTITY_CLASS ) )
+                    ? ResultMapBuilder.getResultMapWithMapReturned( mappedStatement.getConfiguration() )
+                    : ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
 
-            if ( Map.class.isAssignableFrom( ( Class<?> ) unknownArgs.get( BasicCriteriaQueryInterface.ENTITY_CLASS ) ) ) {
-                resultMap = ResultMapBuilder.getResultMapWithMapReturned( mappedStatement.getConfiguration() );
-                mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
-
-            } else {
-                resultMap = ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
-                mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
-            }
+            mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
         }
 
         args[ 0 ] = mappedStatementBuilder.build();

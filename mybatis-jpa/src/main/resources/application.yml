@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/my_blog?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
+    url: jdbc:mysql://127.0.0.1:3306/mybatisJpa?useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true
     username: root
     password:
     hikari:
@@ -8,6 +8,10 @@ spring:
       connection-test-query: select 1
 
     driver-class-name: com.mysql.jdbc.Driver
+
+mybatis:
+  jpa:
+    entity-scan: top.itfinally.mybatis.jpa.testEntity
 
 #    username: root
 #    password:

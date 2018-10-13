@@ -4,7 +4,6 @@ import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.Reference;
 
 import javax.persistence.criteria.Order;
-import java.util.Collection;
 import java.util.List;
 
 /**

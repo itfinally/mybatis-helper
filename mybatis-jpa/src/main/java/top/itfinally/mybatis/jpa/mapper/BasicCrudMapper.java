@@ -1,7 +1,6 @@
 package top.itfinally.mybatis.jpa.mapper;
 
 import org.apache.ibatis.annotations.*;
-import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaQueryManager;
 
 import java.util.List;

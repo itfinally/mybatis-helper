@@ -3,8 +3,6 @@ package top.itfinally.mybatis.jpa.criteria.query;
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.Root;
 
-import java.util.List;
-
 /**
  * <pre>
  * *********************************************

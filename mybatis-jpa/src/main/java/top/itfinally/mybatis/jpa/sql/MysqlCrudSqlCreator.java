@@ -5,7 +5,6 @@ import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.scripting.xmltags.XMLLanguageDriver;
 import org.apache.ibatis.session.Configuration;
-import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -24,11 +23,10 @@ import static top.itfinally.mybatis.jpa.mapper.BasicCrudMapper.*;
  * *********************************************
  * </pre>
  */
-@Component
 public class MysqlCrudSqlCreator extends BasicCrudSqlCreator {
 
-    public MysqlCrudSqlCreator( Configuration configuration ) {
-        super( configuration );
+    public MysqlCrudSqlCreator( Configuration configuration, XMLLanguageDriver languageDriver ) {
+        super( configuration, languageDriver );
     }
 
     @Override

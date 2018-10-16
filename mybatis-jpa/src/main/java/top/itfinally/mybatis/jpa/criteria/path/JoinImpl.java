@@ -1,9 +1,9 @@
 package top.itfinally.mybatis.jpa.criteria.path;
 
 import com.google.common.collect.Lists;
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.*;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.entity.PathMetadata;
 
 import javax.persistence.criteria.JoinType;
@@ -21,14 +21,14 @@ import java.util.List;
  * *********************************************
  * </pre>
  */
-public class JoinImpl<Entity> extends FromImpl<Entity> implements Join<Entity> {
+public class JoinImpl<Entity, Collector extends AbstractCollector> extends FromImpl<Entity, Collector> implements Join<Entity> {
 
-    private FromImpl<Entity> source;
+    private FromImpl<Entity, Collector> source;
 
-    public JoinImpl( CriteriaBuilder builder, QueryCollector queryCollector, From<Entity> source ) {
+    public JoinImpl( CriteriaBuilder builder, Collector queryCollector, From<Entity> source ) {
         super( builder, queryCollector );
 
-        this.source = ( FromImpl<Entity> ) source;
+        this.source = ( FromImpl<Entity, Collector> ) source;
     }
 
     @Override

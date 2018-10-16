@@ -1,7 +1,7 @@
 package top.itfinally.mybatis.jpa.criteria.path;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.Expression;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.criteria.Predicate;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 
@@ -18,9 +18,10 @@ import java.util.Collection;
  * *********************************************
  * </pre>
  */
-public class ExpressionImpl<Entity> extends ReferenceImpl<Entity> implements Expression<Entity> {
+public class ExpressionImpl<Value, Collector extends AbstractCollector> extends ReferenceImpl<Value, Collector>
+        implements Expression<Value> {
 
-    public ExpressionImpl( CriteriaBuilder criteriaBuilder, QueryCollector queryCollector ) {
+    public ExpressionImpl( CriteriaBuilder criteriaBuilder, Collector queryCollector ) {
         super( criteriaBuilder, queryCollector );
     }
 

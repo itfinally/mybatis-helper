@@ -60,7 +60,7 @@ public class MetadataFactory {
                     continue;
                 }
 
-                item.setEntityMetadata( mappingsByName.get( ( ( EntityMetadataToken ) item.getEntityMetadata() ).getToken() ) );
+                item.setEntityMetadata( mappingsByName.get( token ) );
                 injectForeignAttribute( item );
 
                 iterator.remove();

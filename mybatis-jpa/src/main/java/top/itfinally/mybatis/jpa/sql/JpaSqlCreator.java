@@ -22,11 +22,12 @@ import java.util.Map;
  */
 
 public class JpaSqlCreator {
-    private final XMLLanguageDriver languageDriver = new XMLLanguageDriver();
+    private final XMLLanguageDriver languageDriver;
     private final Configuration configuration;
 
-    public JpaSqlCreator( Configuration configuration ) {
+    public JpaSqlCreator( Configuration configuration, XMLLanguageDriver languageDriver ) {
         this.configuration = configuration;
+        this.languageDriver = languageDriver;
     }
 
     public BoundSql buildSql( Map<String, Object> parameterBus ) {

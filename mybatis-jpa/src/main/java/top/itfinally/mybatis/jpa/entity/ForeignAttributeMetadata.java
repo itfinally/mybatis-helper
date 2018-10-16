@@ -1,5 +1,7 @@
 package top.itfinally.mybatis.jpa.entity;
 
+import java.util.Objects;
+
 /**
  * <pre>
  * *********************************************
@@ -62,5 +64,24 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
     public ForeignAttributeMetadata setReferenceAttributeMetadata( AttributeMetadata referenceAttributeMetadata ) {
         this.referenceAttributeMetadata = referenceAttributeMetadata;
         return this;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( this == o ) return true;
+        if ( !( o instanceof ForeignAttributeMetadata ) ) return false;
+        if ( !super.equals( o ) ) return false;
+        ForeignAttributeMetadata that = ( ForeignAttributeMetadata ) o;
+        return isLazy() == that.isLazy() &&
+                isCollection() == that.isCollection() &&
+                Objects.equals( getEntityMetadata(), that.getEntityMetadata() ) &&
+                Objects.equals( getActualType(), that.getActualType() ) &&
+                Objects.equals( getReferenceAttributeMetadata(), that.getReferenceAttributeMetadata() );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( super.hashCode(), getEntityMetadata(), isLazy(),
+                isCollection(), getActualType(), getReferenceAttributeMetadata() );
     }
 }

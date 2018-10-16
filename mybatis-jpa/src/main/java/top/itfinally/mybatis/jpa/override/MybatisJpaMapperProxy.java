@@ -14,6 +14,7 @@ import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
 import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
 import top.itfinally.mybatis.jpa.context.ResultMapBuilder;
+import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -71,14 +72,14 @@ public class MybatisJpaMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
             Class<?> clazz = ( Class<?> ) ( ( Map ) args[ 0 ] ).get( ENTITY_CLASS );
             EntityMetadata metadata = null;
 
-            if ( !Map.class.isAssignableFrom( clazz ) ) {
+            if ( !( TypeMatcher.isBasicType( clazz ) || Map.class.isAssignableFrom( clazz ) ) ) {
                 metadata = MetadataFactory.getMetadata( clazz );
             }
 
             CrudContextHolder.setContext( new CrudContextHolder.Context( JPA, metadata, method ) );
 
             // use 'getResultMapWithMapReturned' if return type is Map.class
-            if ( !Map.class.isAssignableFrom( clazz ) ) {
+            if ( !( TypeMatcher.isBasicType( clazz ) || Map.class.isAssignableFrom( clazz ) ) ) {
                 ResultMapBuilder.resultMapInitializing( configuration, CrudContextHolder.getContext() );
             }
         }

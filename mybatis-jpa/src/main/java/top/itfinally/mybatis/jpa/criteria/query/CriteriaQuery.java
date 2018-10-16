@@ -1,10 +1,8 @@
 package top.itfinally.mybatis.jpa.criteria.query;
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
+import top.itfinally.mybatis.jpa.criteria.Order;
 import top.itfinally.mybatis.jpa.criteria.Reference;
-
-import javax.persistence.criteria.Order;
-import java.util.List;
 
 /**
  * <pre>
@@ -24,11 +22,9 @@ public interface CriteriaQuery<Entity> extends AbstractQuery<Entity>, AbstractSu
     @Override
     CriteriaQuery<Entity> where( Expression<Boolean>... restrictions );
 
-    CriteriaQuery<Entity> groupBy( Reference<?> restriction );
+    CriteriaQuery<Entity> groupBy( Reference<?>... restriction );
 
-    CriteriaQuery<Entity> having( Expression<Boolean> restriction );
+    CriteriaQuery<Entity> having( Expression<Boolean>... restriction );
 
-    CriteriaQuery<Entity> orderBy( Order order );
-
-    CriteriaQuery<Entity> orderBy( List<Order> orders );
+    CriteriaQuery<Entity> orderBy( Order... orders );
 }

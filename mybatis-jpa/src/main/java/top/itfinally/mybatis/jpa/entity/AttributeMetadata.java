@@ -2,6 +2,7 @@ package top.itfinally.mybatis.jpa.entity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * <pre>
@@ -85,5 +86,25 @@ public class AttributeMetadata {
     public AttributeMetadata setWriteMethod( Method writeMethod ) {
         this.writeMethod = writeMethod;
         return this;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( this == o ) return true;
+        if ( !( o instanceof AttributeMetadata ) ) return false;
+        AttributeMetadata that = ( AttributeMetadata ) o;
+        return isNullable() == that.isNullable() &&
+                isPrimary() == that.isPrimary() &&
+                Objects.equals( getJavaName(), that.getJavaName() ) &&
+                Objects.equals( getJdbcName(), that.getJdbcName() ) &&
+                Objects.equals( getField(), that.getField() ) &&
+                Objects.equals( getReadMethod(), that.getReadMethod() ) &&
+                Objects.equals( getWriteMethod(), that.getWriteMethod() );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( getJavaName(), getJdbcName(), isNullable(),
+                isPrimary(), getField(), getReadMethod(), getWriteMethod() );
     }
 }

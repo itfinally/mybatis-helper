@@ -1,9 +1,9 @@
 package top.itfinally.mybatis.jpa.criteria.path;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.Path;
 import top.itfinally.mybatis.jpa.criteria.Root;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
@@ -21,19 +21,18 @@ import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
  * *********************************************
  * </pre>
  */
-public class AttributePath<Entity> extends PathImpl<Entity> implements Path<Entity>, Writable {
+public class AttributePath<Entity, Collector extends AbstractCollector> extends PathImpl<Entity, Collector> implements Path<Entity>, Writable {
 
-    private final AttributeMetadata attributeMetadata;
     private final boolean isRelationToken;
-
-    private final RootImpl<Entity> root;
+    private final RootImpl<Entity, Collector> root;
+    private final AttributeMetadata attributeMetadata;
 
     @SuppressWarnings( "unchecked" )
-    public AttributePath( CriteriaBuilder builder, QueryCollector queryCollector, Root<?> root, AttributeMetadata attributeMetadata ) {
+    public AttributePath( CriteriaBuilder builder, Collector queryCollector, Root<?> root, AttributeMetadata attributeMetadata ) {
         super( builder, queryCollector );
 
-        this.root = ( RootImpl<Entity> ) root;
         this.attributeMetadata = attributeMetadata;
+        this.root = ( RootImpl<Entity, Collector> ) root;
         this.isRelationToken = attributeMetadata instanceof ForeignAttributeMetadata;
     }
 
@@ -61,12 +60,12 @@ public class AttributePath<Entity> extends PathImpl<Entity> implements Path<Enti
 
     @Override
     public String toFormatString( ParameterBus parameters ) {
-//        if ( null == root ) {
-//            String className = attributeMetadata.getField().getDeclaringClass().getName();
-//
-//            throw new IllegalStateException( String.format( "the attribute is come from entity '%s', but it not found", className ) +
-//                    "( maybe you forget call 'root.join( ${otherRoot} ).on( builder.equal( ${condition} ) )' instruction )" );
-//        }
+        if ( null == root ) {
+            String className = attributeMetadata.getField().getDeclaringClass().getName();
+
+            throw new IllegalStateException( String.format( "The attribute is come from entity '%s', but it not found", className ) +
+                    "( maybe you forget call 'root.join( ${otherRoot} ).on( builder.equal( ${condition} ) )' instruction )" );
+        }
 
         return String.format( "%s.%s", root.toFormatString( parameters ), attributeMetadata.getJdbcName() );
     }

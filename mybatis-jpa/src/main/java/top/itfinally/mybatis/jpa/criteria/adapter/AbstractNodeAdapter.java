@@ -1,7 +1,7 @@
 package top.itfinally.mybatis.jpa.criteria.adapter;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 
 import java.util.Objects;
 
@@ -16,11 +16,11 @@ import java.util.Objects;
  * *********************************************
  * </pre>
  */
-public abstract class AbstractNodeAdapter {
+public abstract class AbstractNodeAdapter<Collector extends AbstractCollector> {
     private final CriteriaBuilder criteriaBuilder;
-    private final QueryCollector queryCollector;
+    private final Collector queryCollector;
 
-    public AbstractNodeAdapter( CriteriaBuilder criteriaBuilder, QueryCollector queryCollector ) {
+    public AbstractNodeAdapter( CriteriaBuilder criteriaBuilder, Collector queryCollector ) {
         this.criteriaBuilder = criteriaBuilder;
         this.queryCollector = queryCollector;
     }
@@ -29,7 +29,7 @@ public abstract class AbstractNodeAdapter {
         return criteriaBuilder;
     }
 
-    protected QueryCollector queryCollector() {
+    protected Collector queryCollector() {
         return queryCollector;
     }
 

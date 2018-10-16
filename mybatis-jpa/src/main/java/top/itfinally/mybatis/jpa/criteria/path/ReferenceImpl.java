@@ -1,9 +1,9 @@
 package top.itfinally.mybatis.jpa.criteria.path;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.Reference;
 import top.itfinally.mybatis.jpa.criteria.adapter.AbstractNodeAdapter;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 
 /**
  * <pre>
@@ -16,16 +16,17 @@ import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
  * *********************************************
  * </pre>
  */
-public class ReferenceImpl<Entity> extends AbstractNodeAdapter implements Reference<Entity> {
+public class ReferenceImpl<Value, Collector extends AbstractCollector> extends AbstractNodeAdapter<Collector>
+        implements Reference<Value> {
 
     private String alias;
 
-    public ReferenceImpl( CriteriaBuilder criteriaBuilder, QueryCollector queryCollector ) {
+    public ReferenceImpl( CriteriaBuilder criteriaBuilder, Collector queryCollector ) {
         super( criteriaBuilder, queryCollector );
     }
 
     @Override
-    public Reference<Entity> alias( String alias ) {
+    public Reference<Value> alias( String alias ) {
         this.alias = alias;
         return this;
     }

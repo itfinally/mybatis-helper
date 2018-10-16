@@ -1,9 +1,9 @@
 package top.itfinally.mybatis.jpa.criteria.path;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.Path;
 import top.itfinally.mybatis.jpa.criteria.Root;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.PathMetadata;
@@ -21,9 +21,9 @@ import top.itfinally.mybatis.jpa.exception.NoSuchAttributeException;
  * *********************************************
  * </pre>
  */
-public class PathImpl<Entity> extends ExpressionImpl<Entity> implements Path<Entity> {
+public class PathImpl<Entity, Collector extends AbstractCollector> extends ExpressionImpl<Entity, Collector> implements Path<Entity> {
 
-    public PathImpl( CriteriaBuilder criteriaBuilder, QueryCollector queryCollector ) {
+    public PathImpl( CriteriaBuilder criteriaBuilder, Collector queryCollector ) {
         super( criteriaBuilder, queryCollector );
     }
 

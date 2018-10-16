@@ -38,7 +38,7 @@ public class InPredicate extends AbstractPredicateImpl implements Predicate {
         if ( unknownVal instanceof Expression<?> ) {
             inClause = ( ( Writable ) unknownVal ).toFormatString( parameters );
 
-        } else if ( unknownVal instanceof Collection ) {
+        } else if ( unknownVal instanceof Collection || unknownVal.getClass().isArray() ) {
             String key = parameters.put( unknownVal );
 
             inClause = String.format( "<foreach collection=\"%s\" item=\"item\" open=\"(\" separator=\",\" close=\")\" >", key ) +
@@ -46,7 +46,7 @@ public class InPredicate extends AbstractPredicateImpl implements Predicate {
                     "</foreach>";
 
         } else {
-            throw new IllegalArgumentException( "There are no parameter to specified at in predicate" );
+            throw new IllegalArgumentException( "InPredicate have an unknown type of parameter: " + unknownVal.getClass().getName() );
         }
 
         return String.format( "%s %s in %s", ( ( Writable ) expression ).toFormatString( parameters ),

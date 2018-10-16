@@ -21,32 +21,32 @@ import java.util.Objects;
  */
 public class ComparisonPredicate extends AbstractPredicateImpl implements Predicate {
 
-    private final Operator operator;
+    private final LogicOperation operator;
     private final Expression<?> leftVal;
     private final ValueWrapper rightVal;
 
-    public ComparisonPredicate( CriteriaBuilder builder, Operator operator, Expression<?> left, Object right ) {
+    public ComparisonPredicate( CriteriaBuilder builder, LogicOperation operator, Expression<?> left, Object right ) {
         super( builder );
 
         Objects.requireNonNull( left, "ComparisonPredicate expect given non-null value but got null at left value" );
         Objects.requireNonNull( right, "ComparisonPredicate expect given non-null value but got null at right value" );
 
         this.operator = operator;
-        this.leftVal = left;
-        this.rightVal = new ValueWrapper( criteriaBuilder(), queryCollector(), right );
+        this.rightVal = new ValueWrapper( criteriaBuilder(), right );
+        this.leftVal = Objects.requireNonNull( left, "Expression require not null" );
     }
 
     @Override
     public String toFormatString( ParameterBus parameters ) {
-        Operator operator = isNegated() ? this.operator.reverse() : this.operator;
+        LogicOperation operator = isNegated() ? this.operator.reverse() : this.operator;
         return String.format( "%s %s %s", ( ( Writable ) leftVal ).toFormatString( parameters ),
                 operator.val(), rightVal.toFormatString( parameters ) );
     }
 
-    public enum Operator {
+    public enum LogicOperation {
         EQUAL {
             @Override
-            public Operator reverse() {
+            public LogicOperation reverse() {
                 return NOT_EQUAL;
             }
 
@@ -58,7 +58,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
         NOT_EQUAL {
             @Override
-            public Operator reverse() {
+            public LogicOperation reverse() {
                 return EQUAL;
             }
 
@@ -70,7 +70,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
         GREATER_THAN {
             @Override
-            public Operator reverse() {
+            public LogicOperation reverse() {
                 return LESS_THAN_OR_EQUAL;
             }
 
@@ -82,7 +82,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
         GREATER_THAN_OR_EQUAL {
             @Override
-            public Operator reverse() {
+            public LogicOperation reverse() {
                 return LESS_THAN;
             }
 
@@ -94,7 +94,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
         LESS_THAN {
             @Override
-            public Operator reverse() {
+            public LogicOperation reverse() {
                 return GREATER_THAN_OR_EQUAL;
             }
 
@@ -106,7 +106,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
 
         LESS_THAN_OR_EQUAL {
             @Override
-            public Operator reverse() {
+            public LogicOperation reverse() {
                 return GREATER_THAN;
             }
 
@@ -116,7 +116,7 @@ public class ComparisonPredicate extends AbstractPredicateImpl implements Predic
             }
         };
 
-        public abstract Operator reverse();
+        public abstract LogicOperation reverse();
 
         public abstract String val();
     }

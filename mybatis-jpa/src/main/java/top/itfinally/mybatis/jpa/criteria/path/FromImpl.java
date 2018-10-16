@@ -1,9 +1,9 @@
 package top.itfinally.mybatis.jpa.criteria.path;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.*;
 import top.itfinally.mybatis.jpa.entity.JoinMetadata;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
@@ -20,9 +20,9 @@ import javax.persistence.criteria.JoinType;
  * *********************************************
  * </pre>
  */
-public class FromImpl<Entity> extends PathImpl<Entity> implements From<Entity> {
+public class FromImpl<Entity, Collector extends AbstractCollector> extends PathImpl<Entity, Collector> implements From<Entity> {
 
-    public FromImpl( CriteriaBuilder criteriaBuilder, QueryCollector queryCollector ) {
+    public FromImpl( CriteriaBuilder criteriaBuilder, Collector queryCollector ) {
         super( criteriaBuilder, queryCollector );
     }
 

@@ -8,6 +8,7 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.plugin.*;
+import org.apache.ibatis.scripting.xmltags.XMLLanguageDriver;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -20,6 +21,7 @@ import top.itfinally.mybatis.jpa.sql.BasicCrudSqlCreator;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
 import top.itfinally.mybatis.jpa.sql.JpaSqlCreator;
 import top.itfinally.mybatis.jpa.sql.MysqlCrudSqlCreator;
+import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -52,9 +54,11 @@ public class JpaPrepareInterceptor implements Interceptor {
     private final Map<String, Method> methods;
 
     public JpaPrepareInterceptor( MybatisJpaConfig jpaConfig, Configuration configuration ) {
+        XMLLanguageDriver languageDriver = new XMLLanguageDriver();
+
         switch ( jpaConfig.getDatabaseId() ) {
             case MybatisCoreConfiguration.MYSQL: {
-                sqlCreator = new MysqlCrudSqlCreator( configuration );
+                sqlCreator = new MysqlCrudSqlCreator( configuration, languageDriver );
                 break;
             }
 
@@ -63,7 +67,7 @@ public class JpaPrepareInterceptor implements Interceptor {
             }
         }
 
-        jpaSqlCreator = new JpaSqlCreator( configuration );
+        jpaSqlCreator = new JpaSqlCreator( configuration, languageDriver );
 
         Map<String, Method> methods = new HashMap<>();
         Map<String, Class<?>[]> parameters = new HashMap<>();
@@ -92,7 +96,7 @@ public class JpaPrepareInterceptor implements Interceptor {
             jpaQuery( invocation.getArgs(), context );
 
         } else {
-            throw new IllegalStateException( "Unknown context type -> " + context.getContextType() );
+            throw new IllegalStateException( "Unknown context type: " + context.getContextType() );
         }
 
         return invocation.proceed();
@@ -116,8 +120,14 @@ public class JpaPrepareInterceptor implements Interceptor {
                 .getMappedStatementBuilder( mappedStatement, jpaSqlCreator.buildSql( unknownArgs ) );
 
         if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
-            ResultMap resultMap = Map.class.isAssignableFrom( ( Class<?> ) unknownArgs.get( BasicCriteriaQueryInterface.ENTITY_CLASS ) )
+            Class<?> entityClass = ( Class<?> ) unknownArgs.get( BasicCriteriaQueryInterface.ENTITY_CLASS );
+
+            ResultMap resultMap = TypeMatcher.isBasicType( entityClass )
+                    ? ResultMapBuilder.getResultMapWithBasicTypeReturned( mappedStatement.getConfiguration(), entityClass )
+
+                    : Map.class.isAssignableFrom( entityClass )
                     ? ResultMapBuilder.getResultMapWithMapReturned( mappedStatement.getConfiguration() )
+
                     : ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
 
             mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );

@@ -2,9 +2,9 @@ package top.itfinally.mybatis.jpa.criteria.query;
 
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
+import top.itfinally.mybatis.jpa.criteria.Order;
 import top.itfinally.mybatis.jpa.criteria.Predicate;
 
-import javax.persistence.criteria.Order;
 import java.util.Collection;
 
 /**
@@ -22,23 +22,34 @@ public interface CriteriaBuilder {
 
     CriteriaQuery<Object> createQuery();
 
-//    <Entity> CriteriaDelete<Entity> createCriteriaUpdate( Class<Entity> targetEntity );
-//
-//    <Entity> CriteriaDelete<Entity> createCriteriaDelete( Class<Entity> targetEntity );
+    <Entity> CriteriaUpdate<Entity> createCriteriaUpdate();
+
+    <Entity> CriteriaDelete<Entity> createCriteriaDelete();
 
 
     // expression
 
+    <T extends Number> Expression<T> max( Expression<?> path );
 
-    <Entity> Expression<Entity> max( Expression<?> path );
+    <T extends Number> Expression<T> min( Expression<?> path );
 
-    <Entity> Expression<Entity> min( Expression<?> path );
+    Expression<Double> avg( Expression<?> path );
 
-    <Entity> Expression<Entity> count( Expression<?> path );
+    <T extends Number> Expression<T> sum( Expression<?> path );
+
+    Expression<Long> count( Expression<?> path );
+
+    Expression<Long> countDistinct( Expression<?> path );
+
+    <T> Expression<T> function( String name, Object... parameters );
 
     Order asc( Expression<?> expression );
 
     Order desc( Expression<?> expression );
+
+    Predicate and( Predicate... predicates );
+
+    Predicate or( Predicate... predicates );
 
     Predicate isTrue( Expression<?> expression );
 

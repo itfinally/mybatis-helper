@@ -33,12 +33,13 @@ import static top.itfinally.mybatis.jpa.mapper.BasicCrudMapper.ENTITY;
  * </pre>
  */
 public abstract class BasicCrudSqlCreator {
-    private final XMLLanguageDriver languageDriver = new XMLLanguageDriver();
+    private final XMLLanguageDriver languageDriver;
 
     protected final Configuration configuration;
 
-    protected BasicCrudSqlCreator( Configuration configuration ) {
+    protected BasicCrudSqlCreator( Configuration configuration, XMLLanguageDriver languageDriver ) {
         this.configuration = configuration;
+        this.languageDriver = languageDriver;
     }
 
     protected BoundSql buildBoundSql( Object unknownArgs, Function<XMLLanguageDriver, SqlSource> sqlBuilder ) {
@@ -122,7 +123,7 @@ public abstract class BasicCrudSqlCreator {
             return null == attr.getReadMethod().invoke( applier );
 
         } catch ( IllegalAccessException | InvocationTargetException e ) {
-            throw new RuntimeException( String.format( "Can read attribute '%s' from field of entity '%s'",
+            throw new RuntimeException( String.format( "Can't read attribute '%s' from field of entity '%s'",
                     attr.getJavaName(), attr.getField().getDeclaringClass() ), e );
         }
     }

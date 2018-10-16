@@ -3,6 +3,7 @@ package top.itfinally.mybatis.jpa.criteria.query;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
+import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import javax.persistence.Table;
 import java.util.List;
@@ -37,6 +38,7 @@ public class CriteriaQueryManager<Entity> {
         return criteriaBuilder;
     }
 
+    @SuppressWarnings( "unchecked" )
     public DelegatedTypedQuery<Entity> createCriteriaQuery( final CriteriaQuery<?> criteriaQuery ) {
         return new DelegatedTypedQuery<Entity>() {
 
@@ -56,7 +58,8 @@ public class CriteriaQueryManager<Entity> {
 
             @Override
             public Entity getSingleResult() {
-                return criteriaQueryInterface.querySingleByCondition( getParameters( ( Writable ) criteriaQuery, getEntityClass() ) );
+                List<Entity> results = getResultList();
+                return results.isEmpty() ? null : results.get( 0 );
             }
 
             @Override
@@ -70,14 +73,31 @@ public class CriteriaQueryManager<Entity> {
         };
     }
 
-    public DelegatedQuery createCriteriaUpdateQuery(  ) {
-        return null;
+    public DelegatedQuery createCriteriaUpdateQuery( final CriteriaUpdate<?> criteriaUpdate ) {
+        return new DelegatedQuery() {
+            @Override
+            public int executeUpdate() {
+                return criteriaQueryInterface.updateByCondition( getParameters( ( Writable ) criteriaUpdate, entityClass ) );
+            }
+        };
+    }
+
+    public DelegatedQuery createCriteriaDeleteQuery( final CriteriaDelete<?> criteriaDelete ) {
+        return new DelegatedQuery() {
+            @Override
+            public int executeUpdate() {
+                return criteriaQueryInterface.deleteByCondition( getParameters( ( Writable ) criteriaDelete, entityClass ) );
+            }
+        };
     }
 
     private <T> Class<T> checkEntityClass( Class<T> entityClass ) {
         Objects.requireNonNull( entityClass, "Entity class require not null" );
 
-        if ( entityClass.getAnnotation( Table.class ) == null && !Map.class.isAssignableFrom( entityClass ) ) {
+        if ( !( TypeMatcher.isBasicType( entityClass )
+                || Map.class.isAssignableFrom( entityClass )
+                || entityClass.getAnnotation( Table.class ) != null ) ) {
+
             throw new IllegalArgumentException( "The entity class must be an entity marked with '@Table' or sub class of class Map" );
         }
 

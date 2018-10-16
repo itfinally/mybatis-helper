@@ -6,6 +6,8 @@ import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 
+import java.util.Objects;
+
 /**
  * <pre>
  * *********************************************
@@ -24,7 +26,7 @@ public class NullnessPredicate extends AbstractPredicateImpl implements Predicat
     public NullnessPredicate( CriteriaBuilder builder, Expression<?> expression ) {
         super( builder );
 
-        this.expression = expression;
+        this.expression = Objects.requireNonNull( expression, "Expression require not null" );
     }
 
     @Override

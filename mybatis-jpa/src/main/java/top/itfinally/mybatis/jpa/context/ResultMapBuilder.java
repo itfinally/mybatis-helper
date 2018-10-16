@@ -35,6 +35,7 @@ public class ResultMapBuilder {
     private static final String PREFIX = "dynamic_method_";
 
     private static volatile ResultMap resultMapWithTypeMap;
+    private static final ConcurrentMap<Class<?>, ResultMap> resultMapWithBasicType = new ConcurrentHashMap<>();
 
     private static final Cache<String, ResultMap> resultMaps = CacheBuilder.newBuilder()
             .concurrencyLevel( Runtime.getRuntime().availableProcessors() )
@@ -66,6 +67,14 @@ public class ResultMapBuilder {
         }
 
         return resultMapWithTypeMap;
+    }
+
+    public static ResultMap getResultMapWithBasicTypeReturned( Configuration configuration, Class<?> type ) {
+        if ( !resultMapWithBasicType.containsKey( type ) ) {
+            resultMapWithBasicType.put( type, new ResultMap.Builder( configuration, "", type, new ArrayList<ResultMapping>() ).build() );
+        }
+
+        return resultMapWithBasicType.get( type );
     }
 
     private static ResultMap initializingResultMapAndGet(

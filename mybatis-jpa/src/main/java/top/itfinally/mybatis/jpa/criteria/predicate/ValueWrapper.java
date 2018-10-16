@@ -1,11 +1,13 @@
 package top.itfinally.mybatis.jpa.criteria.predicate;
 
+import top.itfinally.mybatis.jpa.collectors.AbstractCollector;
 import top.itfinally.mybatis.jpa.criteria.Expression;
 import top.itfinally.mybatis.jpa.criteria.path.ExpressionImpl;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
-import top.itfinally.mybatis.jpa.criteria.query.QueryCollector;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
+
+import java.util.Objects;
 
 /**
  * <pre>
@@ -18,19 +20,19 @@ import top.itfinally.mybatis.jpa.criteria.render.Writable;
  * *********************************************
  * </pre>
  */
-public class ValueWrapper extends ExpressionImpl<Object> implements Expression<Object>, Writable {
+public class ValueWrapper extends ExpressionImpl<Object, AbstractCollector> implements Expression<Object>, Writable {
 
     private final Object val;
 
-    public ValueWrapper( CriteriaBuilder builder, QueryCollector queryCollector, Object val ) {
-        super( builder, queryCollector );
+    public ValueWrapper( CriteriaBuilder builder, Object val ) {
+        super( builder, null );
 
-        this.val = val;
+        this.val = Objects.requireNonNull( val, "Value require not null" );
     }
 
     @Override
-    public String toString() {
-        return val.toString();
+    protected AbstractCollector queryCollector() {
+        throw new UnsupportedOperationException( "Do not calling collector in simple expression." );
     }
 
     @Override

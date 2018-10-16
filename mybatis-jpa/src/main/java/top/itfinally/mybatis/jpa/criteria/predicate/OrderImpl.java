@@ -1,10 +1,11 @@
 package top.itfinally.mybatis.jpa.criteria.predicate;
 
 import top.itfinally.mybatis.jpa.criteria.Expression;
+import top.itfinally.mybatis.jpa.criteria.Order;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 
-import javax.persistence.criteria.Order;
+import java.util.Objects;
 
 /**
  * <pre>
@@ -23,24 +24,19 @@ public class OrderImpl implements Order, Writable {
     private boolean ascending;
 
     public OrderImpl( Expression<?> expression, boolean ascending ) {
-        this.expression = expression;
+        this.expression = Objects.requireNonNull( expression, "Expression require not null" );
         this.ascending = ascending;
     }
 
     @Override
     public Order reverse() {
         ascending = !ascending;
-        return null;
+        return this;
     }
 
     @Override
     public boolean isAscending() {
         return ascending;
-    }
-
-    @Override
-    public javax.persistence.criteria.Expression<?> getExpression() {
-        return null;
     }
 
     @Override

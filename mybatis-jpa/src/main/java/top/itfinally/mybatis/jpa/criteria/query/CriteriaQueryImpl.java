@@ -1,15 +1,14 @@
 package top.itfinally.mybatis.jpa.criteria.query;
 
 import com.google.common.collect.Lists;
+import top.itfinally.mybatis.jpa.collectors.CriteriaQueryCollector;
 import top.itfinally.mybatis.jpa.criteria.Expression;
+import top.itfinally.mybatis.jpa.criteria.Order;
 import top.itfinally.mybatis.jpa.criteria.Reference;
 import top.itfinally.mybatis.jpa.criteria.Root;
 import top.itfinally.mybatis.jpa.criteria.adapter.AbstractNodeAdapter;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
-
-import javax.persistence.criteria.Order;
-import java.util.List;
 
 /**
  * <pre>
@@ -22,19 +21,19 @@ import java.util.List;
  * *********************************************
  * </pre>
  */
-public class CriteriaQueryImpl<Entity> extends AbstractNodeAdapter implements CriteriaQuery<Entity>, Writable {
+public class CriteriaQueryImpl<Entity> extends AbstractNodeAdapter<CriteriaQueryCollector> implements CriteriaQuery<Entity>, Writable {
 
-    private QueryCollector queryCollector;
+    private CriteriaQueryCollector criteriaQueryCollector;
 
     public CriteriaQueryImpl( CriteriaBuilder builder ) {
         super( builder, null );
 
-        this.queryCollector = new QueryCollector( criteriaBuilder(), this );
+        this.criteriaQueryCollector = new CriteriaQueryCollector( criteriaBuilder(), this );
     }
 
     @Override
-    protected QueryCollector queryCollector() {
-        return queryCollector;
+    protected CriteriaQueryCollector queryCollector() {
+        return criteriaQueryCollector;
     }
 
     @Override
@@ -49,30 +48,29 @@ public class CriteriaQueryImpl<Entity> extends AbstractNodeAdapter implements Cr
     }
 
     @Override
-    public CriteriaQuery<Entity> where( Expression<Boolean>... restriction ) {
+    @SafeVarargs
+    public final CriteriaQuery<Entity> where( Expression<Boolean>... restriction ) {
         queryCollector().addCondition( Lists.newArrayList( restriction ) );
         return this;
     }
 
     @Override
-    public CriteriaQuery<Entity> groupBy( Reference<?> restriction ) {
-        queryCollector().addGrouping( Lists.<Reference<?>>newArrayList( restriction ) );
+    public CriteriaQuery<Entity> groupBy( Reference<?>... restriction ) {
+        queryCollector().addGrouping( Lists.newArrayList( restriction ) );
         return this;
     }
 
     @Override
-    public CriteriaQuery<Entity> having( Expression<Boolean> restriction ) {
-        return null;
+    @SafeVarargs
+    public final CriteriaQuery<Entity> having( Expression<Boolean>... restriction ) {
+        queryCollector().addHaving( Lists.newArrayList( restriction ) );
+        return this;
     }
 
     @Override
-    public CriteriaQuery<Entity> orderBy( Order order ) {
-        return null;
-    }
-
-    @Override
-    public CriteriaQuery<Entity> orderBy( List<Order> orders ) {
-        return null;
+    public CriteriaQuery<Entity> orderBy( Order... orders ) {
+        queryCollector().addOrder( Lists.newArrayList( orders ) );
+        return this;
     }
 
     @Override

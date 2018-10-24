@@ -19,8 +19,7 @@ import java.util.Collection;
  * </pre>
  */
 public interface CriteriaBuilder {
-
-    CriteriaQuery<Object> createQuery();
+    <Entity> CriteriaQuery<Entity> createCriteriaQuery();
 
     <Entity> CriteriaUpdate<Entity> createCriteriaUpdate();
 

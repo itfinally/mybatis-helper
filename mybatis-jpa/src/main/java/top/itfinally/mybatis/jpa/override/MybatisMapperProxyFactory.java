@@ -19,12 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * *********************************************
  * </pre>
  */
-public class MybatisJpaMapperProxyFactory<Mapper, Entity> extends MapperProxyFactory<Mapper> {
+public class MybatisMapperProxyFactory<Mapper, Entity> extends MapperProxyFactory<Mapper> {
     private final Class<Entity> entityClass;
     private final Class<Mapper> mapperInterface;
     private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<>();
 
-    public MybatisJpaMapperProxyFactory( Class<Entity> entityClass, Class<Mapper> mapperInterface ) {
+    public MybatisMapperProxyFactory( Class<Entity> entityClass, Class<Mapper> mapperInterface ) {
         super( mapperInterface );
         this.entityClass = entityClass;
         this.mapperInterface = mapperInterface;
@@ -32,6 +32,6 @@ public class MybatisJpaMapperProxyFactory<Mapper, Entity> extends MapperProxyFac
 
     @Override
     public Mapper newInstance( SqlSession sqlSession ) {
-        return newInstance( new MybatisJpaMapperProxy<>( sqlSession, mapperInterface, entityClass, methodCache ) );
+        return newInstance( new MybatisMapperProxy<>( sqlSession, mapperInterface, entityClass, methodCache ) );
     }
 }

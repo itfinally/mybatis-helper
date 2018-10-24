@@ -1,5 +1,6 @@
 package top.itfinally.mybatis.paging.configuration;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.core.MybatisCoreConfiguration;
 import top.itfinally.mybatis.paging.interceptor.hook.SqlHookBuilder;

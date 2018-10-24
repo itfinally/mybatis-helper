@@ -23,14 +23,14 @@ import org.springframework.context.annotation.Primary;
 public class MybatisJpaProperties extends MybatisProperties {
 
     @NestedConfigurationProperty
-    private MybatisJpaConfiguration configuration;
+    private MybatisConfiguration configuration;
 
     @Override
-    public MybatisJpaConfiguration getConfiguration() {
+    public MybatisConfiguration getConfiguration() {
         return configuration;
     }
 
-    public MybatisJpaProperties setConfiguration( MybatisJpaConfiguration configuration ) {
+    public MybatisJpaProperties setConfiguration( MybatisConfiguration configuration ) {
         this.configuration = configuration;
         return this;
     }

@@ -25,7 +25,7 @@ import static top.itfinally.mybatis.jpa.criteria.predicate.CompoundPredicate.Log
 public class CriteriaBuilderImpl implements CriteriaBuilder {
 
     @Override
-    public CriteriaQuery<Object> createQuery() {
+    public <Entity> CriteriaQuery<Entity> createCriteriaQuery() {
         return new CriteriaQueryImpl<>( this );
     }
 

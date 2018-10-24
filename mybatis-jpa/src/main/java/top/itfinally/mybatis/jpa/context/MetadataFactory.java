@@ -47,29 +47,46 @@ public class MetadataFactory {
             buildEntity( clazz, foreignAttributeMetadataTokens );
         }
 
+        Map<String, ForeignAttributeMetadata> delegatedTokens = null;
+
         if ( !foreignAttributeMetadataTokens.isEmpty() ) {
-            Iterator<ForeignAttributeMetadata> iterator = foreignAttributeMetadataTokens.iterator();
-            ForeignAttributeMetadata item;
+            // Reset foreign attribute metadata will be change hash code.
+            // So that use HashMap<UUID, ForeignAttributeMetadata> to replace Set<ForeignAttributeMetadata>
+            delegatedTokens = new HashMap<>( foreignAttributeMetadataTokens.size() );
+
+            for ( ForeignAttributeMetadata item : foreignAttributeMetadataTokens ) {
+                delegatedTokens.put( UUID.randomUUID().toString().replaceAll( "-", "" ), item );
+            }
+
+            Iterator<String> iterator = delegatedTokens.keySet().iterator();
+            ForeignAttributeMetadata foreignAttributeMetadata;
             String token;
+            String key;
 
             while ( iterator.hasNext() ) {
-                item = iterator.next();
-                token = ( ( EntityMetadataToken ) item.getEntityMetadata() ).getToken();
+                key = iterator.next();
+                foreignAttributeMetadata = delegatedTokens.get( key );
 
-                if ( !( item.getEntityMetadata() instanceof EntityMetadataToken && mappingsByName.containsKey( token ) ) ) {
+                token = ( ( EntityMetadataToken ) foreignAttributeMetadata.getEntityMetadata() ).getToken();
+
+                if ( !( foreignAttributeMetadata.getEntityMetadata() instanceof EntityMetadataToken
+                        && mappingsByName.containsKey( token ) ) ) {
+
                     continue;
                 }
 
-                item.setEntityMetadata( mappingsByName.get( token ) );
-                injectForeignAttribute( item );
+                EntityMetadata entityMetadata = mappingsByName.get( token );
+
+                injectForeignAttribute( foreignAttributeMetadata.setEntityMetadata( entityMetadata )
+                        .setActualType( entityMetadata.getEntityClass() ) );
 
                 iterator.remove();
             }
         }
 
-        if ( !foreignAttributeMetadataTokens.isEmpty() ) {
+        if ( delegatedTokens != null && !delegatedTokens.isEmpty() ) {
             List<String> names = new ArrayList<>();
-            for ( ForeignAttributeMetadata item : foreignAttributeMetadataTokens ) {
+            for ( ForeignAttributeMetadata item : delegatedTokens.values() ) {
                 names.add( String.format( "attribute %s of entity %s ( require table %s )",
                         item.getJavaName(), item.getField().getDeclaringClass().getName(),
                         ( ( EntityMetadataToken ) item.getEntityMetadata() ).getToken() ) );
@@ -84,8 +101,8 @@ public class MetadataFactory {
         EntityMetadata metadata = mappingsByClass.get( entityClass );
 
         if ( null == metadata ) {
-            throw new IllegalStateException( "No scan entity before use it, please setting property " +
-                    "'mybatis.jpa.entity-scan' in your configurer" );
+            throw new IllegalStateException( String.format( "Entity '%s' is not found, " +
+                            "please make sure all entity has been scan", entityClass.getName() ) );
         }
 
         return metadata;
@@ -107,7 +124,7 @@ public class MetadataFactory {
 
         createAttributeAndInject( metadata, foreignAttributeMetadataTokens );
 
-        // for table tokens
+        // For table tokens
         mappingsByName.put( metadata.getTableName(), metadata );
         mappingsByClass.put( metadata.getEntityClass(), metadata );
 
@@ -167,9 +184,9 @@ public class MetadataFactory {
         ColumnAnnotation column;
         AttributeMetadata attributeMetadata;
 
-        Class<?> actualType;
+        Class<?> actualDeclareType;
+        Class<?> targetEntityType;
         Class<?> attributeType;
-        Class<?> targetType = null;
 
         Relation relationship;
         ForeignAttributeMetadata foreignAttributeMetadata;
@@ -186,6 +203,10 @@ public class MetadataFactory {
 
             relationship = new Relation( field, pd );
             column = new ColumnAnnotation( field, pd );
+
+            if ( column.isIgnore() ) {
+                continue;
+            }
 
             if ( !relationship.hasRelationship() ) {
                 attributeMetadata = createAttributeMetadata( new AttributeMetadata(), column, field, pd );
@@ -208,8 +229,8 @@ public class MetadataFactory {
                         "with relationship annotation like '@OneToOne'" );
             }
 
-            foreignAttributeMetadata = createAttributeMetadata( new ForeignAttributeMetadata(), column, field, pd )
-                    .setLazy( relationship.isLazy() );
+            foreignAttributeMetadata = createAttributeMetadata( new ForeignAttributeMetadata(),
+                    column, field, pd ).setLazy( relationship.isLazy() );
 
             attributeType = field.getType();
 
@@ -223,33 +244,49 @@ public class MetadataFactory {
             // But, it can resolve as one to many relationship
             if ( Collection.class.isAssignableFrom( attributeType ) ) {
 
-                actualType = getActualType( field );
+                actualDeclareType = getActualType( field );
 
-                if ( !( Map.class.isAssignableFrom( actualType ) || actualType.getAnnotation( Table.class ) != null ) ) {
-                    throw new IllegalArgumentException( String.format( "The generic type of %s must be an entity " +
+                if ( !( Map.class.isAssignableFrom( actualDeclareType ) || actualDeclareType.getAnnotation( Table.class ) != null ) ) {
+                    throw new IllegalArgumentException( String.format( "The generic type of '%s' must be an entity " +
                             "what marked with '@Table' or type Map", attributeType.getSimpleName() ) );
                 }
 
-                foreignAttributeMetadata.setCollection( true ).setActualType( actualType );
+                foreignAttributeMetadata.setCollection( true ).setNestMap( true );
 
-                targetType = Map.class.isAssignableFrom( actualType ) ? null : actualType;
+                if ( !Map.class.isAssignableFrom( actualDeclareType ) ) {
+                    targetEntityType = actualDeclareType;
+
+                } else {
+                    targetEntityType = relationship.getTargetEntity();
+                    if ( void.class == targetEntityType || Void.class == targetEntityType ) {
+                        targetEntityType = null;
+                    }
+                }
 
             } else if ( Map.class.isAssignableFrom( attributeType ) ) {
-                foreignAttributeMetadata.setCollection( false ).setActualType( attributeType );
+
+                foreignAttributeMetadata.setMap( true );
+
+                actualDeclareType = attributeType.getClass();
+                targetEntityType = relationship.getTargetEntity();
+
+                if ( void.class == targetEntityType || Void.class == targetEntityType ) {
+                    targetEntityType = null;
+                }
 
             } else if ( attributeType.getAnnotation( Table.class ) != null ) {
-                foreignAttributeMetadata.setCollection( false ).setActualType( attributeType );
-                targetType = attributeType;
+
+                actualDeclareType = targetEntityType = attributeType;
 
             } else {
                 throw new IllegalStateException( String.format( "The foreign attribute have an unknown java type '%s', ", attributeType.getName() ) +
                         "only accept type of 'Collection', 'Map' or any entity marked with '@Table' annotation" );
             }
 
-            if ( targetType != null ) {
-                Table table = targetType.getAnnotation( Table.class );
+            if ( targetEntityType != null ) {
+                Table table = targetEntityType.getAnnotation( Table.class );
                 if ( null == table ) {
-                    throw new IllegalStateException( String.format( "The entity '%s' should be marked with '@Table'", targetType.getName() ) );
+                    throw new IllegalStateException( String.format( "The entity '%s' should be marked with '@Table'", targetEntityType.getName() ) );
                 }
 
                 foreignAttributeMetadataTokens.add( foreignAttributeMetadata
@@ -257,9 +294,6 @@ public class MetadataFactory {
                         .setJdbcName( column.joinColumn.referencedColumnName() ) )
 
                         .setEntityMetadata( new EntityMetadataToken().setToken( table.name() ) ) );
-
-                // clear up
-                targetType = null;
 
             } else if ( !Strings.isNullOrEmpty( column.joinColumn.table() ) ) {
                 foreignAttributeMetadataTokens.add( foreignAttributeMetadata
@@ -269,9 +303,16 @@ public class MetadataFactory {
                         .setEntityMetadata( new EntityMetadataToken().setToken( column.joinColumn.table() ) ) );
 
             } else {
-                throw new IllegalStateException( String.format( "The foreign attribute '%s' of entity '%s' " +
-                                "require an entity as attribute type or declare attribute 'table' of '@JoinColumn' to identification",
-                        field.getName(), field.getDeclaringClass().getName() ) );
+                if ( Map.class.isAssignableFrom( actualDeclareType ) ) {
+                    throw new IllegalStateException( String.format( "Please declare attribute 'table' at '@JoinColumn' " +
+                            "or attribute 'targetEntity' at someone annotation like '@OneToOne' for field '%s' of entity '%s'",
+                            pd.getName(), pd.getWriteMethod().getDeclaringClass().getName() ) );
+
+                } else {
+                    throw new IllegalStateException( String.format( "The foreign attribute '%s' of entity '%s' " +
+                                    "require an entity as attribute type or declare attribute 'table' of '@JoinColumn' to identification",
+                            field.getName(), field.getDeclaringClass().getName() ) );
+                }
             }
 
             foreignAttributeMetadataList.add( foreignAttributeMetadata );
@@ -327,7 +368,15 @@ public class MetadataFactory {
                     String.format( "at attribute '%s' of class '%s'", field.getName(), field.getDeclaringClass().getName() ) );
         }
 
-        return ( Class<?> ) actualType[ 0 ];
+        if ( actualType[ 0 ] instanceof Class ) {
+            return ( Class<?> ) actualType[ 0 ];
+
+        } else if ( actualType[ 0 ] instanceof ParameterizedType ) {
+            return ( Class<?> ) ( ( ParameterizedType ) actualType[ 0 ] ).getRawType();
+
+        } else {
+            throw new IllegalArgumentException( String.format( "Unknown type: %s", actualType[ 0 ] ) );
+        }
     }
 
     private static <T extends Annotation> T getJpaAnnotation( Class<T> clazz, Field field, PropertyDescriptor pd ) {
@@ -364,13 +413,13 @@ public class MetadataFactory {
         private final Column column;
         private final JoinColumn joinColumn;
 
+        private final boolean ignore;
+
         private ColumnAnnotation( Field field, PropertyDescriptor pd ) {
             column = getJpaAnnotation( Column.class, field, pd );
             joinColumn = getJpaAnnotation( JoinColumn.class, field, pd );
 
-            if ( null == column && null == joinColumn ) {
-                throw new IllegalStateException( String.format( "Missing annotation '@Column' or '@JoinColumn' on entity field '%s'", field.getName() ) );
-            }
+            ignore = ( null == column && null == joinColumn );
         }
 
         private String getJdbcName() {
@@ -383,6 +432,10 @@ public class MetadataFactory {
 
         private boolean isJoinColumn() {
             return joinColumn != null;
+        }
+
+        private boolean isIgnore() {
+            return ignore;
         }
     }
 
@@ -434,6 +487,22 @@ public class MetadataFactory {
             }
 
             return false;
+        }
+
+        private Class<?> getTargetEntity() {
+            if ( oneToOne != null ) {
+                return oneToOne.targetEntity();
+            }
+
+            if ( oneToMany != null ) {
+                return oneToMany.targetEntity();
+            }
+
+            if ( manyToOne != null ) {
+                return manyToOne.targetEntity();
+            }
+
+            return null;
         }
 
         private boolean hasRelationship() {

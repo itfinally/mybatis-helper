@@ -185,7 +185,7 @@ public class MissionGroupBuilder {
 
     private static Class<?> loadClass( String className ) {
         try {
-            return Class.forName( className );
+            return Class.forName( className, false, Thread.currentThread().getContextClassLoader() );
 
         } catch ( ClassNotFoundException e ) {
             throw new RuntimeException( String.format( "Failure to load class of '%s'", className ), e );

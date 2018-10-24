@@ -53,7 +53,7 @@ public class JpaPrepareInterceptor implements Interceptor {
     private final Map<String, Class<?>[]> parameters;
     private final Map<String, Method> methods;
 
-    public JpaPrepareInterceptor( MybatisJpaConfig jpaConfig, Configuration configuration ) {
+    public JpaPrepareInterceptor( MybatisJpaConfiguration jpaConfig, Configuration configuration ) {
         XMLLanguageDriver languageDriver = new XMLLanguageDriver();
 
         switch ( jpaConfig.getDatabaseId() ) {
@@ -86,8 +86,6 @@ public class JpaPrepareInterceptor implements Interceptor {
         if ( null == context ) {
             return invocation.proceed();
         }
-
-        CrudContextHolder.clear();
 
         if ( context.getContextType() == CrudContextHolder.ContextType.GENERAL ) {
             genericQuery( invocation.getArgs(), context );
@@ -122,7 +120,9 @@ public class JpaPrepareInterceptor implements Interceptor {
         if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
             Class<?> entityClass = ( Class<?> ) unknownArgs.get( BasicCriteriaQueryInterface.ENTITY_CLASS );
 
-            ResultMap resultMap = TypeMatcher.isBasicType( entityClass )
+            ResultMap resultMap =
+
+                    TypeMatcher.isBasicType( entityClass )
                     ? ResultMapBuilder.getResultMapWithBasicTypeReturned( mappedStatement.getConfiguration(), entityClass )
 
                     : Map.class.isAssignableFrom( entityClass )
@@ -144,8 +144,16 @@ public class JpaPrepareInterceptor implements Interceptor {
                 .getMappedStatementBuilder( mappedStatement, getBoundSql( context, unknownArgs ) );
 
         if ( mappedStatement.getSqlCommandType() == SqlCommandType.SELECT ) {
-            ResultMap resultMap = ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
-            mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+            List<ResultMap> originResultMap = mappedStatement.getResultMaps();
+
+            if ( originResultMap.isEmpty() ) {
+                throw new IllegalStateException( "The origin result map is empty." );
+            }
+
+            if ( !TypeMatcher.isBasicType( originResultMap.get( 0 ).getType() ) ) {
+                ResultMap resultMap = ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
+                mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
+            }
         }
 
         args[ 0 ] = mappedStatementBuilder.build();
@@ -169,7 +177,7 @@ public class JpaPrepareInterceptor implements Interceptor {
                 }
 
                 default: {
-                    throw new UnsupportedOperationException( String.format( "method: %s parameter length: %d not found",
+                    throw new UnsupportedOperationException( String.format( "Method: %s parameter length: %d not found",
                             method.getName(), parameters.get( method.getName() ).length ) );
                 }
             }

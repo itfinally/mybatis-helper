@@ -75,13 +75,13 @@ public abstract class AbstractCollector implements Writable {
     //
 
     public void addCondition( final Collection<Expression<Boolean>> predicates ) {
+        if ( TypeMatcher.hasNullValueInCollection( predicates ) ) {
+            throw new NullPointerException( "There are have null value inside the given collection" );
+        }
+
         concurrentChecking( new Runnable() {
             @Override
             public void run() {
-                if ( TypeMatcher.hasNullValueInCollection( predicates ) ) {
-                    throw new NullPointerException( "There are have null value inside the given collection" );
-                }
-
                 expressions.addAll( predicates );
             }
         } );
@@ -97,13 +97,13 @@ public abstract class AbstractCollector implements Writable {
     }
 
     public void addJoinCondition( final List<Predicate> restrictions ) {
+        if ( TypeMatcher.hasNullValueInCollection( restrictions ) ) {
+            throw new NullPointerException( "There are have null value inside the given collection" );
+        }
+
         concurrentChecking( new Runnable() {
             @Override
             public void run() {
-                if ( TypeMatcher.hasNullValueInCollection( restrictions ) ) {
-                    throw new NullPointerException( "There are have null value inside the given collection" );
-                }
-
                 joinExpression.addAll( restrictions );
             }
         } );

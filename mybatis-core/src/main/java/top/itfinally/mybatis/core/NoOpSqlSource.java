@@ -13,7 +13,7 @@ import org.apache.ibatis.mapping.SqlSource;
  *  v1.0          2018/9/7       itfinally       首次创建
  * *********************************************
  *
- * no-operation sql source
+ * No-operation sql source
  *
  * </pre>
  */

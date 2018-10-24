@@ -7,6 +7,7 @@ import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * <pre>
@@ -27,8 +28,8 @@ public class InPredicate extends AbstractPredicateImpl implements Predicate {
     public InPredicate( CriteriaBuilder builder, Expression<?> expression, Object unknownVal ) {
         super( builder );
 
-        this.expression = expression;
-        this.unknownVal = unknownVal;
+        this.expression = Objects.requireNonNull( expression, "Expression require not null" );
+        this.unknownVal = Objects.requireNonNull( unknownVal, "Value require not null" );
     }
 
     @Override
@@ -39,6 +40,10 @@ public class InPredicate extends AbstractPredicateImpl implements Predicate {
             inClause = ( ( Writable ) unknownVal ).toFormatString( parameters );
 
         } else if ( unknownVal instanceof Collection || unknownVal.getClass().isArray() ) {
+            if ( isEmptyCollectionOrArray( unknownVal ) ) {
+                throw new IllegalArgumentException( "The Collection that you given is empty, please check you criteria object statement" );
+            }
+
             String key = parameters.put( unknownVal );
 
             inClause = String.format( "<foreach collection=\"%s\" item=\"item\" open=\"(\" separator=\",\" close=\")\" >", key ) +
@@ -51,5 +56,11 @@ public class InPredicate extends AbstractPredicateImpl implements Predicate {
 
         return String.format( "%s %s in %s", ( ( Writable ) expression ).toFormatString( parameters ),
                 isNegated() ? "not" : "", inClause );
+    }
+
+    private static boolean isEmptyCollectionOrArray( Object collection ) {
+        return collection instanceof Collection
+                ? ( ( Collection ) collection ).isEmpty()
+                : ( ( Object[] ) collection ).length <= 0;
     }
 }

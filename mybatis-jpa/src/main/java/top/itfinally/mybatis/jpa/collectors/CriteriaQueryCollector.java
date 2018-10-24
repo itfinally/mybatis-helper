@@ -53,39 +53,39 @@ public class CriteriaQueryCollector extends AbstractCollector {
     }
 
     public void addGrouping( final Collection<Reference<?>> paths ) {
+        if ( TypeMatcher.hasNullValueInCollection( paths ) ) {
+            throw new NullPointerException( "There are have null value inside the given collection" );
+        }
+
         concurrentChecking( new Runnable() {
             @Override
             public void run() {
-                if ( TypeMatcher.hasNullValueInCollection( paths ) ) {
-                    throw new NullPointerException( "There are have null value inside the given collection" );
-                }
-
                 groups.addAll( paths );
             }
         } );
     }
 
     public void addHaving( final Collection<Expression<Boolean>> predicates ) {
+        if ( TypeMatcher.hasNullValueInCollection( predicates ) ) {
+            throw new NullPointerException( "There are have null value inside the given collection" );
+        }
+
         concurrentChecking( new Runnable() {
             @Override
             public void run() {
-                if ( TypeMatcher.hasNullValueInCollection( predicates ) ) {
-                    throw new NullPointerException( "There are have null value inside the given collection" );
-                }
-
                 havings.addAll( predicates );
             }
         } );
     }
 
     public void addOrder( final List<Order> orders ) {
+        if ( TypeMatcher.hasNullValueInCollection( orders ) ) {
+            throw new NullPointerException( "There are have null value inside the given collection" );
+        }
+
         concurrentChecking( new Runnable() {
             @Override
             public void run() {
-                if ( TypeMatcher.hasNullValueInCollection( orders ) ) {
-                    throw new NullPointerException( "There are have null value inside the given collection" );
-                }
-
                 CriteriaQueryCollector.this.orders.addAll( orders );
             }
         } );

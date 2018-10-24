@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.core.TypeMappings;
-import top.itfinally.mybatis.generator.configuration.MybatisGeneratorConfigure;
+import top.itfinally.mybatis.generator.configuration.MybatisGeneratorConfiguration;
 import top.itfinally.mybatis.generator.configuration.NamingMapping;
 import top.itfinally.mybatis.generator.core.NamingConverter;
 import top.itfinally.mybatis.generator.core.PrimitiveType;
@@ -136,8 +136,8 @@ public abstract class DatabaseScanComponent {
 
         private Class<? extends DatabaseScanComponent> activeClass;
 
-        public Builder( MybatisGeneratorConfigure configure, ApplicationContext context ) {
-            switch ( configure.getDatabaseId() ) {
+        public Builder( MybatisGeneratorConfiguration configuration, ApplicationContext context ) {
+            switch ( configuration.getDatabaseId() ) {
                 case MYSQL: {
                     informationMapper = context.getBean( MysqlInformationMapper.class );
                     activeClass = MysqlScanComponent.class;
@@ -151,7 +151,7 @@ public abstract class DatabaseScanComponent {
                 }
 
                 default: {
-                    throw new UnsupportedOperationException( String.format( "Not match database id( '%s' ).", configure.getDatabaseId() ) );
+                    throw new UnsupportedOperationException( String.format( "Not match database id( '%s' ).", configuration.getDatabaseId() ) );
                 }
             }
 

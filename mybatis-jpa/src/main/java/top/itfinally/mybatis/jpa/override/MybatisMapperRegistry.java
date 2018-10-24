@@ -12,6 +12,7 @@ import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.concurrent.*;
 
 /**
@@ -25,14 +26,14 @@ import java.util.concurrent.*;
  * *********************************************
  * </pre>
  */
-public class MybatisJpaMapperRegistry extends MapperRegistry {
+public class MybatisMapperRegistry extends MapperRegistry {
     private static final Cache<Class<?>, MapperProxyFactory<?>> knownMappers = CacheBuilder.newBuilder()
             .concurrencyLevel( Runtime.getRuntime().availableProcessors() )
             .maximumSize( 1024 )
             .initialCapacity( 64 )
             .build();
 
-    public MybatisJpaMapperRegistry( Configuration config ) {
+    public MybatisMapperRegistry( Configuration config ) {
         super( config );
     }
 
@@ -48,7 +49,7 @@ public class MybatisJpaMapperRegistry extends MapperRegistry {
                 @Override
                 public MapperProxyFactory<?> call() {
                     if ( !BasicCrudMapper.class.isAssignableFrom( type ) ) {
-                        return new MybatisJpaMapperProxyFactory<>( null, type );
+                        return new MybatisMapperProxyFactory<>( null, type );
                     }
 
                     Type[] types = type.getGenericInterfaces();
@@ -59,9 +60,14 @@ public class MybatisJpaMapperRegistry extends MapperRegistry {
                     }
 
                     ParameterizedType pt = ( ParameterizedType ) types[ 0 ];
-                    Class<?> entityClass = ( Class<?> ) pt.getActualTypeArguments()[ 0 ];
+                    Type genericType = pt.getActualTypeArguments()[ 0 ];
 
-                    return new MybatisJpaMapperProxyFactory<>( entityClass, type );
+                    if ( genericType instanceof ParameterizedType || genericType instanceof TypeVariable ) {
+                        throw new IllegalArgumentException( "" );
+                    }
+
+                    return new MybatisMapperProxyFactory<>( ( Class<?> ) pt.getActualTypeArguments()[ 0 ], type );
+
                 }
 
             } ).newInstance( sqlSession );

@@ -17,6 +17,8 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
     private EntityMetadata entityMetadata;
     private boolean isLazy;
 
+    private boolean map;
+    private boolean nestMap;
     private boolean collection;
     private Class<?> actualType;
     private AttributeMetadata referenceAttributeMetadata;
@@ -36,6 +38,24 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
 
     public ForeignAttributeMetadata setLazy( boolean lazy ) {
         isLazy = lazy;
+        return this;
+    }
+
+    public boolean isMap() {
+        return map;
+    }
+
+    public ForeignAttributeMetadata setMap( boolean map ) {
+        this.map = map;
+        return this;
+    }
+
+    public boolean isNestMap() {
+        return nestMap;
+    }
+
+    public ForeignAttributeMetadata setNestMap( boolean nestMap ) {
+        this.nestMap = nestMap;
         return this;
     }
 
@@ -83,5 +103,16 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
     public int hashCode() {
         return Objects.hash( super.hashCode(), getEntityMetadata(), isLazy(),
                 isCollection(), getActualType(), getReferenceAttributeMetadata() );
+    }
+
+    @Override
+    public String toString() {
+        return "ForeignAttributeMetadata{" +
+                "entityMetadata=" + entityMetadata +
+                ", isLazy=" + isLazy +
+                ", collection=" + collection +
+                ", actualType=" + actualType +
+                ", referenceAttributeMetadata=" + referenceAttributeMetadata +
+                "} " + super.toString();
     }
 }

@@ -34,15 +34,16 @@ public class MybatisJpaEntityScanner implements ApplicationListener<ContextRefre
     private static final Logger logger = LoggerFactory.getLogger( MybatisJpaEntityScanner.class );
 
     @Resource
-    private MybatisJpaConfigureProperties config;
+    private MybatisJpaConfigureProperties properties;
 
     @Override
     public void onApplicationEvent( ContextRefreshedEvent contextRefreshedEvent ) {
-        if ( Strings.isNullOrEmpty( config.getEntityScan() ) ) {
+        if ( Strings.isNullOrEmpty( properties.getEntityScan() ) ) {
             return;
         }
 
-        String[] entityScanClassPaths = config.getEntityScan().split( "," );
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        String[] entityScanClassPaths = properties.getEntityScan().split( "," );
         List<String> classNames = new ArrayList<>();
 
         try {
@@ -56,11 +57,11 @@ public class MybatisJpaEntityScanner implements ApplicationListener<ContextRefre
 
                 logger.info( "Start to scanning class path: {}", classPath );
 
-                URL url = Thread.currentThread().getContextClassLoader().getResource( classPath.replaceAll( "\\.", File.separator ) );
+                URL url = classLoader.getResource( classPath.replaceAll( "\\.", File.separator ) );
 
                 if ( null == url ) {
                     throw new RuntimeException( new FileNotFoundException( String.format(
-                            "No package found for route: '%s'", config.getEntityScan() ) ) );
+                            "No package found for route: '%s'", properties.getEntityScan() ) ) );
                 }
 
                 File folder = Paths.get( url.toURI() ).toFile();
@@ -75,7 +76,6 @@ public class MybatisJpaEntityScanner implements ApplicationListener<ContextRefre
             throw new RuntimeException( "Scanning class file failure", e );
         }
 
-        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         List<Class<?>> classes = new ArrayList<>();
         Class<?> clazz;
 

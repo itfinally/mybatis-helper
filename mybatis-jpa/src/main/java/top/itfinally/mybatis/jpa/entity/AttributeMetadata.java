@@ -107,4 +107,17 @@ public class AttributeMetadata {
         return Objects.hash( getJavaName(), getJdbcName(), isNullable(),
                 isPrimary(), getField(), getReadMethod(), getWriteMethod() );
     }
+
+    @Override
+    public String toString() {
+        return "AttributeMetadata{" +
+                "javaName='" + javaName + '\'' +
+                ", jdbcName='" + jdbcName + '\'' +
+                ", nullable=" + nullable +
+                ", isPrimary=" + isPrimary +
+                ", field=" + field +
+                ", readMethod=" + readMethod +
+                ", writeMethod=" + writeMethod +
+                '}';
+    }
 }

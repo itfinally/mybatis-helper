@@ -33,8 +33,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 @Primary
 @org.springframework.context.annotation.Configuration
 @ConfigurationProperties( prefix = "mybatis.configuration" )
-public class MybatisJpaConfiguration extends Configuration {
-    public MybatisJpaConfiguration() {
+public class MybatisConfiguration extends Configuration {
+    public MybatisConfiguration() {
         try {
             // Use reflect to modify attributes of configuration who using not thread-safe collection as type.
             // So that make mybatis-jpa plugin is thread-safe and efficient.
@@ -43,7 +43,7 @@ public class MybatisJpaConfiguration extends Configuration {
             Class<?> clazz = Configuration.class;
 
             setValue( clazz.getDeclaredField( "mapperRegistry" ), this,
-                    new MybatisJpaMapperRegistry( this ) );
+                    new MybatisMapperRegistry( this ) );
 
             setValue( clazz.getDeclaredField( "mappedStatements" ), this,
                     new ConcurrentStrictMap<MappedStatement>( "Mapped Statements collection" ) );

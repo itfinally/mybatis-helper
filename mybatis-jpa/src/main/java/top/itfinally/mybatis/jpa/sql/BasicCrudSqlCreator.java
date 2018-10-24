@@ -7,9 +7,13 @@ import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.scripting.xmltags.XMLLanguageDriver;
 import org.apache.ibatis.session.Configuration;
+import top.itfinally.mybatis.jpa.context.MetadataFactory;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
+import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,7 +80,43 @@ public abstract class BasicCrudSqlCreator {
             values.add( String.format( "#{%s.%s}", ENTITY, attr.getJavaName() ) );
         }
 
-        return new InsertPair( Joiner.on( "," ).join( fields ), Joiner.on( "," ).join( values ) );
+        for ( ForeignAttributeMetadata attr : metadata.getReferenceColumns() ) {
+            if ( ( attr.getField().getAnnotation( OneToOne.class ) == null
+                    && attr.getField().getAnnotation( ManyToOne.class ) == null )
+                    || Map.class.isAssignableFrom( attr.getActualType() ) ) {
+
+                continue;
+            }
+
+            // Association field
+            Object value = getValue( applier, attr );
+            if ( isNonnull && null == value ) {
+                continue;
+            }
+
+            // Short circuit if value is null
+            if ( null == value ) {
+                fields.add( attr.getJdbcName() );
+                values.add( "null" );
+
+                continue;
+            }
+
+            AttributeMetadata id = getIdByEntityClass( attr.getActualType() );
+            if ( isNonnull && isNullValue( value, id ) ) {
+                continue;
+            }
+
+            fields.add( attr.getJdbcName() );
+            values.add( String.format( "#{%s.%s.%s}", ENTITY, attr.getJavaName(), id.getJavaName() ) );
+        }
+
+        if ( fields.isEmpty() ) {
+            throw new IllegalStateException( String.format( "There are no attributes to insert for entity '%s'",
+                    applier.getClass().getName() ) );
+        }
+
+        return new InsertPair( Joiner.on( ", " ).join( fields ), Joiner.on( ", " ).join( values ) );
     }
 
     protected static class InsertPair {
@@ -108,24 +148,74 @@ public abstract class BasicCrudSqlCreator {
             pairs.add( String.format( "%s = #{%s.%s}", attr.getJdbcName(), ENTITY, attr.getJavaName() ) );
         }
 
+        for ( ForeignAttributeMetadata attr : metadata.getReferenceColumns() ) {
+            if ( ( attr.getField().getAnnotation( OneToOne.class ) == null
+                    && attr.getField().getAnnotation( ManyToOne.class ) == null )
+                    || Map.class.isAssignableFrom( attr.getActualType() ) ) {
+
+                continue;
+            }
+
+            // Association field
+            Object value = getValue( applier, attr );
+            if ( isNonnull && null == value ) {
+                continue;
+            }
+
+            // Short circuit if value is null
+            if ( null == value ) {
+                pairs.add( String.format( "%s = null", attr.getJdbcName() ) );
+                continue;
+            }
+
+            AttributeMetadata id = getIdByEntityClass( attr.getActualType() );
+            if ( isNonnull && isNullValue( value, id ) ) {
+                continue;
+            }
+
+            pairs.add( String.format( "%s = #{%s.%s.%s}", attr.getJdbcName(), ENTITY, attr.getJavaName(), id.getJavaName() ) );
+        }
+
+        if ( pairs.isEmpty() ) {
+            throw new IllegalStateException( String.format( "There are no attributes to update for Entity '%s'",
+                    applier.getClass().getName() ) );
+        }
+
         return Joiner.on( ", " ).join( pairs );
     }
 
     protected void assertInExpressionNotEmpty( @SuppressWarnings( "all" ) String argName, String methodName, Object unknownArgs ) {
         Object result = getSpecifyParameter( argName, unknownArgs );
         if ( ( result instanceof Collection && ( ( Collection ) result ).isEmpty() ) ) {
-            throw new IllegalArgumentException( String.format( "The given collection is empty, method: %s parameter: %s", methodName, argName ) );
+            throw new IllegalArgumentException( String.format( "The given collection is empty, method: %s parameter: %s",
+                    methodName, argName ) );
         }
     }
 
     private boolean isNullValue( Object applier, AttributeMetadata attr ) {
+        return null == getValue( applier, attr );
+    }
+
+    private Object getValue( Object applier, AttributeMetadata attr ) {
         try {
-            return null == attr.getReadMethod().invoke( applier );
+            return applier instanceof Map
+                    ? ( ( Map ) applier ).get( attr.getJavaName() )
+                    : attr.getReadMethod().invoke( applier );
 
         } catch ( IllegalAccessException | InvocationTargetException e ) {
             throw new RuntimeException( String.format( "Can't read attribute '%s' from field of entity '%s'",
                     attr.getJavaName(), attr.getField().getDeclaringClass() ), e );
         }
+    }
+
+    private AttributeMetadata getIdByEntityClass( Class<?> entityClass ) {
+        AttributeMetadata id = MetadataFactory.getMetadata( entityClass ).getId();
+        if ( null == id ) {
+            throw new IllegalStateException( String.format( "There are no id attribute in entity '%s'",
+                    entityClass.getName() ) );
+        }
+
+        return id;
     }
 
     public abstract BoundSql queryByIdIs( EntityMetadata metadata, Object unknownArgs );
@@ -136,7 +226,7 @@ public abstract class BasicCrudSqlCreator {
 
     public abstract BoundSql existByIdIs( EntityMetadata metadata, Object unknownArgs );
 
-    // 针对不支持 multi values insert 操作的数据库, 可以尝试以下语句
+    // Try this sql if target database not supported multi values insert
     // insert into table( fields... ) select #{values}... union all select #{values}... union all ...
     public abstract BoundSql save( EntityMetadata metadata, Object unknownArgs );
 

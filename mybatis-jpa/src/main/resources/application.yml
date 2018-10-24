@@ -12,6 +12,7 @@ spring:
 mybatis:
   jpa:
     entity-scan: top.itfinally.mybatis.jpa.testEntity
+  config-location: classpath:/mybatis-configuration.xml
 
 #    username: root
 #    password:

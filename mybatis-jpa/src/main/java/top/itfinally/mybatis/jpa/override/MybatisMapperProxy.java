@@ -13,7 +13,6 @@ import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
 import top.itfinally.mybatis.jpa.mapper.BasicCrudMapper;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
-import top.itfinally.mybatis.jpa.context.ResultMapBuilder;
 import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import java.lang.reflect.Method;
@@ -36,12 +35,12 @@ import static top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface.ENTIT
  * *********************************************
  * </pre>
  */
-public class MybatisJpaMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
+public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
     private final Configuration configuration;
     private final Class<Entity> entityClass;
     private final Set<String> methodNames;
 
-    public MybatisJpaMapperProxy( SqlSession sqlSession, Class<Mapper> mapperInterface, Class<Entity> entityClass, Map<Method, MapperMethod> methodCache ) {
+    public MybatisMapperProxy( SqlSession sqlSession, Class<Mapper> mapperInterface, Class<Entity> entityClass, Map<Method, MapperMethod> methodCache ) {
         super( sqlSession, mapperInterface, methodCache );
 
         Set<String> methodNames = new HashSet<>();
@@ -65,7 +64,6 @@ public class MybatisJpaMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
 
             if ( methodNames.contains( method.getName() ) ) {
                 CrudContextHolder.buildEntityAndSetContext( entityClass, method );
-                ResultMapBuilder.resultMapInitializing( configuration, CrudContextHolder.getContext() );
             }
 
         } else if ( proxy instanceof BasicCriteriaQueryInterface ) {
@@ -77,14 +75,14 @@ public class MybatisJpaMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
             }
 
             CrudContextHolder.setContext( new CrudContextHolder.Context( JPA, metadata, method ) );
-
-            // use 'getResultMapWithMapReturned' if return type is Map.class
-            if ( !( TypeMatcher.isBasicType( clazz ) || Map.class.isAssignableFrom( clazz ) ) ) {
-                ResultMapBuilder.resultMapInitializing( configuration, CrudContextHolder.getContext() );
-            }
         }
 
-        return super.invoke( proxy, method, args );
+        try {
+            return super.invoke( proxy, method, args );
+
+        } finally {
+            CrudContextHolder.clear();
+        }
     }
 
     @Component

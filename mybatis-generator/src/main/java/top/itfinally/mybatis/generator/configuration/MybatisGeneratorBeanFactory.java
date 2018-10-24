@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import top.itfinally.mybatis.core.MybatisCoreConfiguration;
 
 /**
  * <pre>
@@ -20,7 +19,7 @@ import top.itfinally.mybatis.core.MybatisCoreConfiguration;
  * </pre>
  */
 @Configuration
-public class MybatisGeneratorConfigure extends MybatisCoreConfiguration {
+public class MybatisGeneratorBeanFactory {
 
     @Bean
     public MapperScannerConfigurer mapperScannerConfigurer() {

@@ -39,7 +39,7 @@ public class CriteriaQueryManager<Entity> {
     }
 
     @SuppressWarnings( "unchecked" )
-    public DelegatedTypedQuery<Entity> createCriteriaQuery( final CriteriaQuery<?> criteriaQuery ) {
+    public DelegatedTypedQuery<Entity> createQuery( final CriteriaQuery<?> criteriaQuery ) {
         return new DelegatedTypedQuery<Entity>() {
 
             private Class<?> entityClass = null;
@@ -73,7 +73,7 @@ public class CriteriaQueryManager<Entity> {
         };
     }
 
-    public DelegatedQuery createCriteriaUpdateQuery( final CriteriaUpdate<?> criteriaUpdate ) {
+    public DelegatedQuery createQuery( final CriteriaUpdate<?> criteriaUpdate ) {
         return new DelegatedQuery() {
             @Override
             public int executeUpdate() {
@@ -82,7 +82,7 @@ public class CriteriaQueryManager<Entity> {
         };
     }
 
-    public DelegatedQuery createCriteriaDeleteQuery( final CriteriaDelete<?> criteriaDelete ) {
+    public DelegatedQuery createQuery( final CriteriaDelete<?> criteriaDelete ) {
         return new DelegatedQuery() {
             @Override
             public int executeUpdate() {

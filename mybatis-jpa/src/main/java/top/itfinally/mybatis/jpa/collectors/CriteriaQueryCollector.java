@@ -11,6 +11,7 @@ import top.itfinally.mybatis.jpa.criteria.query.AbstractQuery;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
+import top.itfinally.mybatis.jpa.entity.PathMetadata;
 import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import java.util.*;
@@ -159,18 +160,24 @@ public class CriteriaQueryCollector extends AbstractCollector {
                 continue;
             }
 
-            if ( item instanceof AttributePath && rootNames.contains( ( ( AttributePath<?, ?> ) item )
-                    .getModel().getEntityMetadata().getEntityClass().getName() ) ) {
+            if ( item instanceof AttributePath ) {
+                PathMetadata model = ( ( AttributePath ) item ).getModel();
 
-                throw new IllegalStateException( "" );
+                if ( rootNames.contains( model.getEntityMetadata().getEntityClass().getName() ) ) {
+                    throw new IllegalStateException( String.format( "The entity '%s' where attribute '%s' is present already exists",
+                            model.getAttributeMetadata().getJavaName(), model.getEntityMetadata().getEntityClass().getName() ) );
+                }
             }
 
             if ( item instanceof AbstractFunctionExpressionImpl ) {
                 for ( Path<?> path : ( ( AbstractFunctionExpressionImpl<?> ) item ).getPaths() ) {
-                    if ( path instanceof AttributePath && rootNames.contains(
-                            path.getModel().getEntityMetadata().getEntityClass().getName() ) ) {
+                    if ( path instanceof AttributePath ) {
+                        PathMetadata model = path.getModel();
 
-                        throw new IllegalStateException( "" );
+                        if ( rootNames.contains( model.getEntityMetadata().getEntityClass().getName() ) ) {
+                            throw new IllegalStateException( String.format( "The entity '%s' where attribute '%s' is present already exists",
+                                    model.getAttributeMetadata().getJavaName(), model.getEntityMetadata().getEntityClass().getName() ) );
+                        }
                     }
                 }
             }

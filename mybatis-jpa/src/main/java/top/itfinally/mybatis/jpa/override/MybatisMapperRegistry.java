@@ -63,7 +63,7 @@ public class MybatisMapperRegistry extends MapperRegistry {
                     Type genericType = pt.getActualTypeArguments()[ 0 ];
 
                     if ( genericType instanceof ParameterizedType || genericType instanceof TypeVariable ) {
-                        throw new IllegalArgumentException( "" );
+                        throw new IllegalArgumentException( "Generic type must be an entity" );
                     }
 
                     return new MybatisMapperProxyFactory<>( ( Class<?> ) pt.getActualTypeArguments()[ 0 ], type );

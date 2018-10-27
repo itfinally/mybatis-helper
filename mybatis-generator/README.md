@@ -1,4 +1,4 @@
-# mybatis-generator
+# Mybatis-Generator
 
 Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thymeleaf 作为模版引擎, 支持 yml 配置, 在默认情况下只需要少量配置即可生成代码。
 

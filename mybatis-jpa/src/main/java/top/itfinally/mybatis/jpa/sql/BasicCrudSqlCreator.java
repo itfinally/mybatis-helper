@@ -47,9 +47,11 @@ public abstract class BasicCrudSqlCreator {
     }
 
     protected BoundSql buildBoundSql( Object unknownArgs, Function<XMLLanguageDriver, SqlSource> sqlBuilder ) {
-        // 这里添加 mybatis 原生 sql, 即带上 #{} 标记的 sql
-        // 这里已知 foreach 标签会将原来的 sql 修改, 参考 ForEachSqlNode 类
-        // 针对动态 sql, mybatis 是先将字面 sql 解析为各个节点对象, 然后创建 DynamicSqlSource, 该 sql 源实例会根据实际参数生成不同的 sql
+        // Add Mybatis sql template in here, which is sql wrapped by #{}.
+        // The origin sql will be changed by foreach tag, reference class ForEachSqlNode.
+        //
+        // For dynamic sql template, Mybatis will translate sql as node and build class DynamicSqlSource with it,
+        // and DynamicSqlSource can generate different sql under different parameters.
         return sqlBuilder.apply( languageDriver ).getBoundSql( unknownArgs );
     }
 
@@ -81,10 +83,7 @@ public abstract class BasicCrudSqlCreator {
         }
 
         for ( ForeignAttributeMetadata attr : metadata.getReferenceColumns() ) {
-            if ( ( attr.getField().getAnnotation( OneToOne.class ) == null
-                    && attr.getField().getAnnotation( ManyToOne.class ) == null )
-                    || Map.class.isAssignableFrom( attr.getActualType() ) ) {
-
+            if ( attr.getField().getAnnotation( OneToOne.class ) == null || Map.class.isAssignableFrom( attr.getActualType() ) ) {
                 continue;
             }
 
@@ -149,10 +148,7 @@ public abstract class BasicCrudSqlCreator {
         }
 
         for ( ForeignAttributeMetadata attr : metadata.getReferenceColumns() ) {
-            if ( ( attr.getField().getAnnotation( OneToOne.class ) == null
-                    && attr.getField().getAnnotation( ManyToOne.class ) == null )
-                    || Map.class.isAssignableFrom( attr.getActualType() ) ) {
-
+            if ( attr.getField().getAnnotation( OneToOne.class ) == null || Map.class.isAssignableFrom( attr.getActualType() ) ) {
                 continue;
             }
 

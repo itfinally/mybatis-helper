@@ -9,6 +9,7 @@ import top.itfinally.mybatis.jpa.criteria.path.ExpressionImpl;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.render.ParameterBus;
 import top.itfinally.mybatis.jpa.criteria.render.Writable;
+import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,10 @@ public abstract class AbstractFunctionExpressionImpl<T> extends ExpressionImpl<T
         List<String> args = new ArrayList<>();
 
         for ( Object item : this.parameters ) {
-            args.add( item instanceof Expression ? ( ( Writable ) item ).toFormatString( parameters ) : String.format( "'%s'", item ) );
+            args.add( item instanceof Expression
+                    ? ( ( Writable ) item ).toFormatString( parameters )
+                    : TypeMatcher.isNumeric( item.getClass() ) ? item.toString()
+                    : String.format( "'%s'", item ) );
         }
 
         return String.format( "%s( %s )", functionName, Joiner.on( ", " ).join( args ) );

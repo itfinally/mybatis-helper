@@ -1,12 +1,28 @@
-# Mybatis-Jpa
+# Mybatis-JPA
 
-Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向简单 SQL, 一次性 SQL 等场景, 简化每条 SQL 均需要编写模版文件及接口等繁琐流程.
+Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向但不限于下列场景:
+
+- <strong>简单或中等复杂程度的 SQL 语句编写</strong>
+
+  如 `select count(*) from demo where field = ?` 这类简单语句, 在实际开发中这类查询语句在项目内占比极高, 而且条件不尽相同, 每个语句重用程度比较低, 这种场景下对象查询可以简化工作量.
+
+- <strong>SQL 延迟执行</strong>
+
+  如果需要在某种环境下创建并固化 SQL, 然后到某个合适的环境再执行, 比如在某些特定的事务内, 那对象查询也能解决这种需求.
+  
+- <strong>懒惰</strong>
+
+  如果单纯因为懒得写 Mapper 的模版, 对象查询专治老司机各种不服.
 
 除了提供对象查询外, 该插件亦提供通用 Crud 接口, 无需编写 SQL 即可执行相应的操作. 当然也因为该插件是通过拦截器内嵌, 进而动态改变执行 SQL 的元数据, 因此无缝对接 Mybatis 的属性映射, 类型转换, 防SQL注入, 事务等基础设施.
 
-该插件参考并采用了 Hibernate5 Criteria 的设计, 从而使整体设计更加简洁, 更语义化. 并且能够支持简单及中等复杂程度的 SQL 语句, 包括查询 / 更新 / 删除三种动作。在一定程度上，该插件也可以看作 Hibernate5 Criteria Query 的移植版. 
+该插件参考并采用了 Hibernate5 Criteria 的设计, 从而使整体设计更加简洁, 更语义化. 并且能够支持简单及中等复杂程度的 SQL 语句, 包括查询 / 更新 / 删除三种动作。在一定程度上, 该插件也可以看作 Hibernate5 Criteria Query 的移植版.
+
+当然, 由于是建立在 Mybatis 之上, 大部分工作都交给原流程, 因而整体上仅仅只多了一层模版翻译过程, 实际性能与 Mybatis 相差不大.
 
 由于通用接口属于定制化功能, 需要根据不同的数据库对 SQL 进行优化, 因此目前仅支持 MySQL, 并且在 Java 版本上该插件仅支持 Java7/8 两个版本, 未来将会直接支持 Java11 及以上版本.
+
+<strong>注意</strong>: 这里如此强调是 Hibernate5 而不是 Hibernate, 是因为 Hibernate5 的 Criteria 整个架构完全推翻过去的设计, 更加简洁和语义化, 如有疑惑请移步[Criteria Query 设计文档](https://github.com/itfinally/mybatis-helper/blob/master/mybatis-jpa/Criteria%20Query%20%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3.md)查看其中的设计, 如果有使用过 Hibernate4/5 两个版本的同学应该能明显感觉到两个版本的差异.
 
 ### 添加 maven 依赖( Java7/8 版本 )
 ```xml
@@ -21,7 +37,7 @@ Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向简单 SQL, 一
 
 就像使用 Jpa 查询一样, 该插件也依赖实体上的 Jpa 注解, 如 `@Table`, `@Column`, `@OneToOne` 等注解, 要按照 Jpa 规范为实体标记.
 
-注: 如果没有声明 `@Column` 或 `@JoinColumn`, 那么该属性会被忽略, 另外参与操作的属性必须有 getter/setter 方法.
+注: 如果没有 `@Column` 或 `@JoinColumn` 修饰, 那么该属性会被忽略, 另外被修饰的属性必须有 getter/setter 方法.
 
 ```java
 @Table( name = "demo" )
@@ -98,7 +114,7 @@ int deleteAllByIdIn( List<String> ids );
 
 #### JPA Criteria 查询
 
-由于 API 设计几乎与 Hibernate5 保持一致, 因此如果有 Hibernate5 Criteria 使用经验的同学可以忽略此章节.
+由于 API 设计几乎与 Hibernate5 保持一致, 因此如果有 Hibernate5 Criteria 使用经验的同学应该是非常容易上手.
 
 如果要使用对象查询, 在 `BasicCrudMapper` 接口内还有一个 API:
 ```java
@@ -242,4 +258,8 @@ public class DemoEntity {
 在执行插入操作时, 只有声明 `@OneToOne` 的关联属性会更新对应字段的值, 并且不会执行关联数据的更新.
 
 另外, 关联查询支持懒加载, 即使是 Map 亦可, 只需要将 fetch 属性声明为 `FetchType.LAZY` 即可.
+
+针对多对多这种关系, 由于这种关系是可以分解的, 并且考虑到程序分析其关系并且创造出关联查询 SQL 是不现实的, 因此插件不支持 `@ManyToMany` 的修饰, 建议分解成一对多的关系进行解决.
+
+对于关联操作, 目前插件暂不支持, 后续会考虑加入该功能.
 

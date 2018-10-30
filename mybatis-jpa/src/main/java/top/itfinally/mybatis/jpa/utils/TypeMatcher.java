@@ -28,8 +28,16 @@ public enum TypeMatcher {
             String.class
     ) );
 
+    private static final Set<Class<?>> numericFilter = Sets.newHashSet( Arrays.<Class<?>>asList(
+            byte.class, short.class, int.class, long.class, float.class, double.class,
+            Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class ) );
+
     public static boolean isBasicType( Class<?> type ) {
         return basicTypeFilter.contains( type );
+    }
+
+    public static boolean isNumeric( Class<?> type ) {
+        return numericFilter.contains( type );
     }
 
     public static boolean hasNullValueInCollection( Collection<?> collection ) {

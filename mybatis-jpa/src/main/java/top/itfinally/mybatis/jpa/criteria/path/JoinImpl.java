@@ -6,7 +6,6 @@ import top.itfinally.mybatis.jpa.criteria.*;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.entity.PathMetadata;
 
-import javax.persistence.criteria.JoinType;
 import java.util.Collection;
 import java.util.List;
 

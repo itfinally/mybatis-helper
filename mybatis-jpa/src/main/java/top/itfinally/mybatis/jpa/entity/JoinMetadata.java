@@ -1,6 +1,7 @@
 package top.itfinally.mybatis.jpa.entity;
 
-import javax.persistence.criteria.JoinType;
+import top.itfinally.mybatis.jpa.criteria.JoinType;
+
 import java.util.Objects;
 
 /**

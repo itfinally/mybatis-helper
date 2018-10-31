@@ -20,7 +20,6 @@ import java.util.Map;
  * </pre>
  */
 @Mapper
-@Component
 public interface MysqlInformationMapper extends InformationMapper {
 
     @Override

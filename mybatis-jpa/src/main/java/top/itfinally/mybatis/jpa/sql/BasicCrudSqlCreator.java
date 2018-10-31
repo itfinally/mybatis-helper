@@ -12,7 +12,6 @@ import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

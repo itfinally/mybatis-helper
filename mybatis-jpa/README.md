@@ -16,7 +16,7 @@ Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向但不限于下
 
 除了提供对象查询外, 该插件亦提供通用 Crud 接口, 无需编写 SQL 即可执行相应的操作. 当然也因为该插件是通过拦截器内嵌, 进而动态改变执行 SQL 的元数据, 因此无缝对接 Mybatis 的属性映射, 类型转换, 防SQL注入, 事务等基础设施.
 
-该插件参考并采用了 Hibernate5 Criteria 的设计, 从而使整体设计更加简洁, 更语义化. 并且能够支持简单及中等复杂程度的 SQL 语句, 包括查询 / 更新 / 删除三种动作。在一定程度上, 该插件也可以看作 Hibernate5 Criteria Query 的移植版.
+该插件参考并采用了 Hibernate5 Criteria 的设计, 从而使整体设计更加简洁, 更语义化. 并且能够支持简单及中等复杂程度的 SQL 语句, 包括查询 / 更新 / 删除三种动作. 在一定程度上, 该插件也可以看作 Hibernate5 Criteria Query 的移植版.
 
 当然, 由于是建立在 Mybatis 之上, 大部分工作都交给原流程, 因而整体上仅仅只多了一层模版翻译过程, 实际性能与 Mybatis 相差不大.
 
@@ -33,9 +33,9 @@ Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向但不限于下
 </dependency>
 ```
 
-### 使用方式
+### 配置及使用方式
 
-就像使用 Jpa 查询一样, 该插件也依赖实体上的 Jpa 注解, 如 `@Table`, `@Column`, `@OneToOne` 等注解, 要按照 Jpa 规范为实体标记.
+该插件也依赖实体上的 JPA 注解, 如 `@Table`, `@Column`, `@OneToOne` 等注解, 要按照相关规范为实体标记.
 
 注: 如果没有 `@Column` 或 `@JoinColumn` 修饰, 那么该属性会被忽略, 另外被修饰的属性必须有 getter/setter 方法.
 
@@ -69,6 +69,23 @@ public MybatisJpaConfigureProperties property() {
   return new MybatisJpaConfigureProperties().setEntityScan( "Your entity package path" )
 }
 ```
+
+其次需要自己构建 `SqlSessionFactory`, 必须在这里将 `top.itfinally.mybatis.jpa.override.MybatisConfiguration` 配置类手动诸如 Mybatis 的工厂类, 否则 Mybatis 的内部实现将使用自己的 Configuration.
+
+```java
+@Bean
+public SqlSessionFactory sqlSessionFactory( Configuration configuration, DataSource dataSource ) throws Exception {
+  SqlSessionFactoryBean factory = new SqlSessionFactoryBean();
+  factory.setDataSource( dataSource );
+  factory.setConfiguration( configuration );
+  
+  // Other setting...
+  
+  return factory.getObject();
+}
+```
+
+<strong>注意</strong>: 这里必须用 Spring 注入的 Configuration, 当然由于 JPA 插件的 @Primary 注解, 这里真正注入的是 MybatisConfiguration 类. 只有使用 Spring 注入的配置, 那么该对象才会带有诸如 property / yml 等配置文件上的配置属性, 如果使用自己 new 出来的对象, 那么将无法让 Spring 注入配置属性而导致配置文件上所有配置失效.
 
 最后 Mybatis 接口需要继承 `top.itfinally.mybatis.jpa.mapper.BasicCrudMapper<Entity>`, 该接口需要给出对应的实体, 比如 DemoMapper 负责 DemoEntity 实体的相关操作. 那么相应地, 需要在类型参数上指定该实体, 否则在使用该插件时会报错.
 
@@ -111,7 +128,6 @@ int deleteAllByIdIn( List<String> ids );
 
 以上 API 开箱即用, 其中 id 为 String 类型, 但实际项目中会存在 string 类型的 uuid, 也有 int 类型的自增长 id, 这里统一使用字符串表达.
 
-
 #### JPA Criteria 查询
 
 由于 API 设计几乎与 Hibernate5 保持一致, 因此如果有 Hibernate5 Criteria 使用经验的同学应该是非常容易上手.
@@ -135,8 +151,8 @@ CriteriaQuery<DemoEntity> query = builder.createCriteriaQuery();
 ```
 
 看似繁琐, 实际上三个实例各司其职.
-`CriteriaQueryManager` 实例用于创建 Builder 及执行 SQL 的职责.
-`CriteriaBuilder` 实例用于构建各种各样的 SQL 子句.
+`CriteriaQueryManager` 实例用于创建 Builder 及执行 SQL 的职责.<br/>
+`CriteriaBuilder` 实例用于构建各种各样的 SQL 子句.<br/>
 `CriteriaQuery` 实例用于关联所有 SQL 子句, 代表最终执行的 SQL, 并最终作为参数传递给 `CriteriaQueryManager` 执行.
 
 ##### 简单查询
@@ -255,11 +271,17 @@ public class DemoEntity {
 - 如果类型是 Map 及其子类, 那么需要在 JoinColumn 指定 table 属性, 或者在对应的关系描述注解指定 targetEntity 属性.
 - 如果类型是 Collection 及其子类, 则根据该类的泛型参数的类型作为判断类型, 根据上述两点进行判断.
 
-在执行插入操作时, 只有声明 `@OneToOne` 的关联属性会更新对应字段的值, 并且不会执行关联数据的更新.
+如果类型是 Map 及其子类, 如果查询出的列名与实体上的注解匹配, 那么 key 是实体内的属性名, 否则跟随别名.
+
+如 `select field_alias, other_field from ...` 这个语句.
+
+以 'field_alias' 为例, 如果对应的实体内存在一个被 `@Column( name = 'field_alias' )` 等标签修饰并且名为 'testField' 的实体属性, 那么 Map 内的 key 就是 'testField'.
+
+以 'other_field' 为例, 如果实体内没有符合以上条件的属性, 那么 Map 内的 key 就是 'other_field'.
 
 另外, 关联查询支持懒加载, 即使是 Map 亦可, 只需要将 fetch 属性声明为 `FetchType.LAZY` 即可.
 
 针对多对多这种关系, 由于这种关系是可以分解的, 并且考虑到程序分析其关系并且创造出关联查询 SQL 是不现实的, 因此插件不支持 `@ManyToMany` 的修饰, 建议分解成一对多的关系进行解决.
 
-对于关联操作, 目前插件暂不支持, 后续会考虑加入该功能.
+对于关联操作的 cascade 属性, 目前插件暂不支持, 后续会考虑加入该功能.
 

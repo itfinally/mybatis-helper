@@ -19,7 +19,6 @@ import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.persistence.Table;
-import javax.persistence.criteria.JoinType;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -2,7 +2,7 @@ package top.itfinally.mybatis.core;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,13 +18,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * </pre>
  */
 public class LazyLoad<V> {
-    private final AtomicBoolean loaded = new AtomicBoolean( false );
+    private final AtomicReference<V> value = new AtomicReference<>( null );
     private final Condition condition = new ReentrantLock().newCondition();
     private final Callable<V> callable;
     private final TimeUnit timeUnit;
     private final int wait;
-
-    private volatile V value;
 
     public LazyLoad( Callable<V> callable ) {
         this( 5, TimeUnit.SECONDS, callable );
@@ -38,13 +36,13 @@ public class LazyLoad<V> {
 
     public V get() {
         try {
-            if ( null == value && loaded.compareAndSet( false, true ) ) {
-                value = callable.call();
+            if ( value.get() == null ) {
+                value.compareAndSet( null, callable.call() );
                 condition.signalAll();
 
             } else {
                 condition.await( wait, timeUnit );
-                if ( null == value ) {
+                if ( value.get() == null ) {
                     throw new LazyLoadFailureException( "Get null value after timeout" );
                 }
             }
@@ -53,7 +51,7 @@ public class LazyLoad<V> {
             throw new RuntimeException( "Failure to lazy load object", e );
         }
 
-        return value;
+        return value.get();
     }
 
     public static class LazyLoadFailureException extends RuntimeException {

@@ -1,7 +1,6 @@
 package top.itfinally.mybatis.jpa.mapper;
 
 import org.apache.ibatis.annotations.*;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import java.util.Map;
  * </pre>
  */
 @Mapper
-@Component
 public interface BasicCriteriaQueryInterface {
     String ENTITY_CLASS = "entityClass";
     String SQL = "sql";

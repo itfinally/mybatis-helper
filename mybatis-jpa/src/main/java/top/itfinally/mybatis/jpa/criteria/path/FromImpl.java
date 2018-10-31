@@ -7,8 +7,6 @@ import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
-import javax.persistence.criteria.JoinType;
-
 /**
  * <pre>
  * *********************************************

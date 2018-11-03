@@ -26,7 +26,6 @@ import java.util.List;
  * *********************************************
  * </pre>
  */
-@Order
 @Component
 @SuppressWarnings( "unchecked" )
 @Intercepts( @Signature( type = Executor.class, method = "query", args = { MappedStatement.class, Object.class,

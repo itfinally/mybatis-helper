@@ -1,5 +1,6 @@
 package top.itfinally.mybatis.paging.interceptor;
 
+import com.google.common.base.Strings;
 import net.sf.jsqlparser.JSQLParserException;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.cursor.Cursor;
@@ -40,14 +41,12 @@ import java.util.*;
 public abstract class AbstractPagingInterceptor implements Interceptor {
     private final String databaseId;
     private final JdbcTemplate jdbcTemplate;
-
-    private MybatisPagingProperties properties;
+    private final MybatisPagingProperties properties;
 
     AbstractPagingInterceptor( MybatisPagingProperties properties ) {
         this.properties = properties;
-
-        databaseId = properties.getDatabaseId();
-        jdbcTemplate = new JdbcTemplate( properties.getDatasource() );
+        this.databaseId = properties.getDatabaseId();
+        this.jdbcTemplate = new JdbcTemplate( properties.getDatasource() );
     }
 
     protected abstract void hook( Object[] thisArgs, MappedStatement mappedStatement, BoundSql boundSql );
@@ -144,10 +143,14 @@ public abstract class AbstractPagingInterceptor implements Interceptor {
     }
 
     private SqlHook getSqlHook( String sql, PagingItem pagingItem ) {
+        if ( Strings.isNullOrEmpty( sql ) ) {
+            throw new IllegalArgumentException( "The SQL is empty" );
+        }
+
         try {
-            if ( properties != null && properties.getSqlHookMap().containsKey( sql.toLowerCase() ) ) {
-                SqlHook sqlHook = properties.getSqlHookMap().get( sql.toLowerCase() )
-                        .build( sql, pagingItem.getBeginRow(), pagingItem.getRange() );
+            if ( properties != null && properties.getSqlHookMap().containsKey( databaseId.toLowerCase() ) ) {
+                SqlHook sqlHook = properties.getSqlHookMap().get( databaseId.toLowerCase() ).build(
+                        sql, pagingItem.getBeginRow(), pagingItem.getRange() );
 
                 if ( sqlHook != null ) {
                     return sqlHook;

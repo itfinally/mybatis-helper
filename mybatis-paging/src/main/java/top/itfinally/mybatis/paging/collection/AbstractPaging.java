@@ -57,7 +57,8 @@ public abstract class AbstractPaging implements BasicPaging {
                         count = jdbcTemplate.queryForObject( item.sql, Integer.class, item.orderedArgs );
 
                         if ( null == count ) {
-                            throw new IllegalStateException( String.format( "Failure to counting, result is null. countingSql: %s", item.sql ) );
+                            throw new IllegalStateException( String.format( "Failure to counting, result is null. " +
+                                    "countingSql: %s", item.sql ) );
                         }
 
                         totalCount += count;

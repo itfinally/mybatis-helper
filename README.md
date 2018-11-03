@@ -1,4 +1,4 @@
-# mybatis-helper 
+# Mybatis-Helper 
 
 此处是各组件均使用的配置或操作, 组件详细的文档请查阅各自的文件夹
 
@@ -12,9 +12,9 @@ public DataSource() {
   // maybe master dataSource?
 }
 
-@Bean( "slaveDataSource" )
+@Bean( "replicaDataSource" )
 public DataSource() {
-  // maybe slave dataSource?
+  // maybe replica dataSource?
 }
 ```
 
@@ -32,7 +32,7 @@ public DataSource( ApplicationContext context ) {
   // key 是数据源的别名, 可以通过该别名动态转变使用的数据源
   // value 是真实数据源实例在 spring 的别名, 当然 value 也可以是 DataSource 实例
   dataSourceMap.put( "master", "dataSourceMaster" );
-  dataSourceMap.put( "slave", "dataSourceSlave" );
+  dataSourceMap.put( "replica", "dataSourceReplica" );
   dataSourceRouter.setTargetDataSources( dataSourceMap );
   
   return dataSourceRouter;
@@ -42,4 +42,10 @@ public DataSource( ApplicationContext context ) {
 首先注意这里是用了 `@Primary` 标记该数据源路由, 后续所有使用数据源均使用该路由, 而路由本身是通过抽象方法 `determineCurrentLookupKey()` 获取当前使用的数据源的 key, 也就是上面变量 dataSourceMap 所配置的 key.
 
 当需要改变数据源时, 通过 `DynamicDataSourceRouter.setDataSourceName( String name )` 给出数据源的别名, 即可改变后续操作使用的数据源.
+
+当然这种做法虽然是最简单的, 但是可能无法在同一个函数作用域内使用不同的数据源. 除非使用 AOP 拦截 Mapper 并强制使用JDK代理, 但这样亦会导致无法在同一事务内操作, 因为各个 Mapper 的数据库连接都是不相同的.
+
+因此对于主从分离这类场景, 最好还是使用诸如 sharding-jdbc 等第三方解决方案.
+
+
 

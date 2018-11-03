@@ -24,7 +24,6 @@ import java.util.List;
  * *********************************************
  * </pre>
  */
-@Order
 @Component
 @SuppressWarnings( "unchecked" )
 @Intercepts( {

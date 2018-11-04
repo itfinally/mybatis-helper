@@ -251,7 +251,7 @@ public class MetadataFactory {
                             "what marked with '@Table' or type Map", attributeType.getSimpleName() ) );
                 }
 
-                foreignAttributeMetadata.setCollection( true ).setNestMap( true );
+                foreignAttributeMetadata.setCollection( true ).setMap( true );
 
                 if ( !Map.class.isAssignableFrom( actualDeclareType ) ) {
                     targetEntityType = actualDeclareType;

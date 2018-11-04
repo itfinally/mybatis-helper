@@ -18,7 +18,6 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
     private boolean isLazy;
 
     private boolean map;
-    private boolean nestMap;
     private boolean collection;
     private Class<?> actualType;
     private AttributeMetadata referenceAttributeMetadata;
@@ -47,15 +46,6 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
 
     public ForeignAttributeMetadata setMap( boolean map ) {
         this.map = map;
-        return this;
-    }
-
-    public boolean isNestMap() {
-        return nestMap;
-    }
-
-    public ForeignAttributeMetadata setNestMap( boolean nestMap ) {
-        this.nestMap = nestMap;
         return this;
     }
 
@@ -93,6 +83,7 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
         if ( !super.equals( o ) ) return false;
         ForeignAttributeMetadata that = ( ForeignAttributeMetadata ) o;
         return isLazy() == that.isLazy() &&
+                isMap() == that.isMap() &&
                 isCollection() == that.isCollection() &&
                 Objects.equals( getEntityMetadata(), that.getEntityMetadata() ) &&
                 Objects.equals( getActualType(), that.getActualType() ) &&
@@ -101,8 +92,8 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hash( super.hashCode(), getEntityMetadata(), isLazy(),
-                isCollection(), getActualType(), getReferenceAttributeMetadata() );
+        return Objects.hash( super.hashCode(), getEntityMetadata(), isLazy(), isMap(), isCollection(), getActualType(),
+                getReferenceAttributeMetadata() );
     }
 
     @Override
@@ -110,6 +101,7 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
         return "ForeignAttributeMetadata{" +
                 "entityMetadata=" + entityMetadata +
                 ", isLazy=" + isLazy +
+                ", map=" + map +
                 ", collection=" + collection +
                 ", actualType=" + actualType +
                 ", referenceAttributeMetadata=" + referenceAttributeMetadata +

@@ -31,7 +31,7 @@ public class ResultMapBuilder {
         List<SelectMark> noResultSelections = new ArrayList<>();
         List<SelectMark> copier;
 
-        ResultMapMark mainResultMap = buildResultMap( PREFIX + token.getHashedCacheKey(), metadata, noResultSelections );
+        ResultMapMark mainResultMap = buildResultMap( PREFIX + token.getHashedCacheKey(), metadata, noResultSelections, false );
         resultMaps.put( metadata.getEntityClass(), mainResultMap );
 
         ResultMapMark resultMap;
@@ -48,8 +48,10 @@ public class ResultMapBuilder {
                     continue;
                 }
 
-                resultMap = buildResultMap( selection.getResultId(), selection.getMetadata(), noResultSelections );
-                resultMaps.put( selection.getMetadata().getEntityClass(), resultMap );
+                resultMap = buildResultMap( selection.getResultId(), selection.getMetadata().getEntityMetadata(),
+                        noResultSelections, selection.getMetadata().isMap() );
+
+                resultMaps.put( selection.getType(), resultMap );
                 completedSelections.add( selection );
             }
         }
@@ -57,7 +59,7 @@ public class ResultMapBuilder {
         return new Mapper( token.getNamespace(), new ArrayList<>( resultMaps.values() ), completedSelections ).toString();
     }
 
-    private static ResultMapMark buildResultMap( String resultMapId, EntityMetadata metadata, List<SelectMark> noResultSelections ) {
+    private static ResultMapMark buildResultMap( String resultMapId, EntityMetadata metadata, List<SelectMark> noResultSelections, boolean isMap ) {
         List<? super ResultMark> results = new ArrayList<>();
         for ( AttributeMetadata column : metadata.getColumns() ) {
             results.add( new ResultMark( column ) );
@@ -78,7 +80,7 @@ public class ResultMapBuilder {
             results.add( result );
         }
 
-        return new ResultMapMark( resultMapId, metadata.getEntityClass(), results );
+        return new ResultMapMark( resultMapId, isMap ? Map.class : metadata.getEntityClass(), results );
     }
 }
 
@@ -263,17 +265,17 @@ class SelectMark {
     private final String targetField;
     private final String targetAttribute;
 
-    private final EntityMetadata metadata;
+    private final ForeignAttributeMetadata metadata;
 
     private String resultId = String.format( "nestResultMap_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
 
     SelectMark( String id, ForeignAttributeMetadata metadata ) {
         this.id = id;
-        this.type = metadata.isMap() ? Map.class : metadata.getEntityMetadata().getEntityClass();
+        this.metadata = metadata;
+        this.type = metadata.getEntityMetadata().getEntityClass();
         this.targetTable = metadata.getEntityMetadata().getTableName();
         this.targetField = metadata.getReferenceAttributeMetadata().getJdbcName();
         this.targetAttribute = metadata.getReferenceAttributeMetadata().getJavaName();
-        this.metadata = metadata.getEntityMetadata();
     }
 
     public String getId() {
@@ -288,7 +290,7 @@ class SelectMark {
         return resultId;
     }
 
-    public EntityMetadata getMetadata() {
+    public ForeignAttributeMetadata getMetadata() {
         return metadata;
     }
 

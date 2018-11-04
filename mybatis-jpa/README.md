@@ -22,7 +22,7 @@ Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向但不限于下
 
 由于通用接口属于定制化功能, 需要根据不同的数据库对 SQL 进行优化, 因此目前仅支持 MySQL, 并且在 Java 版本上该插件仅支持 Java7/8 两个版本, 未来将会直接支持 Java11 及以上版本.
 
-<strong>注意</strong>: 这里如此强调是 Hibernate5 而不是 Hibernate, 是因为 Hibernate5 的 Criteria 整个架构完全推翻过去的设计, 更加简洁和语义化, 如有疑惑请移步[Criteria Query 设计文档](https://github.com/itfinally/mybatis-helper/blob/master/mybatis-jpa/Criteria%20Query%20%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3.md)查看其中的设计, 如果有使用过 Hibernate4/5 两个版本的同学应该能明显感觉到两个版本的差异.
+<strong>注意</strong>: 这里如此强调是 Hibernate5 而不是 Hibernate, 是因为 Hibernate5 的 Criteria 整个架构完全被重新设计, 更加简洁和语义化, 如有疑惑请移步[Criteria Query 设计文档](https://github.com/itfinally/mybatis-helper/blob/master/mybatis-jpa/Criteria%20Query%20%E8%AE%BE%E8%AE%A1%E6%96%87%E6%A1%A3.md)查看其中的设计, 如果有使用过 Hibernate4/5 两个版本的同学应该能明显感觉到两个版本的差异.
 
 ### 添加 maven 依赖( Java7/8 版本 )
 ```xml

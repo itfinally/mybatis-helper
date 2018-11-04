@@ -15,7 +15,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.core.MappedStatementCreator;
 import top.itfinally.mybatis.core.MybatisCoreConfiguration;
-import top.itfinally.mybatis.jpa.context.ResultMapBuilder;
+import top.itfinally.mybatis.jpa.context.ResultMapFactory;
 import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
 import top.itfinally.mybatis.jpa.sql.BasicCrudSqlCreator;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
@@ -123,12 +123,12 @@ public class JpaPrepareInterceptor implements Interceptor {
             ResultMap resultMap =
 
                     TypeMatcher.isBasicType( entityClass )
-                    ? ResultMapBuilder.getResultMapWithBasicTypeReturned( mappedStatement.getConfiguration(), entityClass )
+                    ? ResultMapFactory.getResultMapWithBasicTypeReturned( mappedStatement.getConfiguration(), entityClass )
 
                     : Map.class.isAssignableFrom( entityClass )
-                    ? ResultMapBuilder.getResultMapWithMapReturned( mappedStatement.getConfiguration() )
+                    ? ResultMapFactory.getResultMapWithMapReturned( mappedStatement.getConfiguration() )
 
-                    : ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
+                    : ResultMapFactory.getResultMap( mappedStatement.getConfiguration(), context );
 
             mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
         }
@@ -151,7 +151,7 @@ public class JpaPrepareInterceptor implements Interceptor {
             }
 
             if ( !TypeMatcher.isBasicType( originResultMap.get( 0 ).getType() ) ) {
-                ResultMap resultMap = ResultMapBuilder.getResultMap( mappedStatement.getConfiguration(), context );
+                ResultMap resultMap = ResultMapFactory.getResultMap( mappedStatement.getConfiguration(), context );
                 mappedStatementBuilder.resultMaps( Lists.newArrayList( resultMap ) );
             }
         }

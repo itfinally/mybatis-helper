@@ -1,24 +1,13 @@
 package top.itfinally.mybatis.jpa.context;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-import org.apache.ibatis.builder.xml.XMLMapperBuilder;
-import org.apache.ibatis.mapping.ResultMap;
-import org.apache.ibatis.mapping.ResultMapping;
-import org.apache.ibatis.session.Configuration;
+import com.google.common.collect.Lists;
 import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.lang.reflect.Method;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * <pre>
@@ -27,243 +16,293 @@ import java.util.concurrent.*;
  * Description: ${类文件描述}
  * *********************************************
  *  Version       Date          Author        Desc ( 一句话描述修改 )
- *  v1.0          2018/9/5       itfinally       首次创建
+ *  v1.0          2018/11/3       itfinally       首次创建
  * *********************************************
  * </pre>
  */
 public class ResultMapBuilder {
-    private static final String PREFIX = "dynamic_";
-
-    private static volatile ResultMap resultMapWithTypeMap;
-    private static final ConcurrentMap<Class<?>, ResultMap> resultMapWithBasicType = new ConcurrentHashMap<>();
-
-    private static final Cache<String, ResultMap> resultMaps = CacheBuilder.newBuilder()
-            .concurrencyLevel( Runtime.getRuntime().availableProcessors() )
-            .expireAfterWrite( 30, TimeUnit.MINUTES )
-            .maximumSize( 51200 )
-            .initialCapacity( 128 )
-            .weakKeys()
-            .build();
+    private final static String PREFIX = ResultMapFactory.ResultMapToken.PREFIX;
 
     private ResultMapBuilder() {
     }
 
-    public static ResultMap getResultMap( final Configuration configuration, CrudContextHolder.Context context ) {
-        final ResultMapToken token = new ResultMapToken( context );
-        final EntityMetadata metadata = context.getMetadata();
+    public static String build( ResultMapFactory.ResultMapToken token, EntityMetadata metadata ) {
+        Map<Class<?>, ResultMapMark> resultMaps = new HashMap<>();
+        List<SelectMark> noResultSelections = new ArrayList<>();
+        List<SelectMark> copier;
 
-        try {
-            return resultMaps.get( token.getNamespace(), new Callable<ResultMap>() {
-                @Override
-                public ResultMap call() throws Exception {
-                    if ( !configuration.hasResultMap( token.getResultMapId() ) ) {
-                        try ( InputStream in = new ByteArrayInputStream( ResultMapXmlContentBuilder
-                                .createMapperXmlContent( token, metadata ).getBytes() ) ) {
+        ResultMapMark mainResultMap = buildResultMap( PREFIX + token.getHashedCacheKey(), metadata, noResultSelections );
+        resultMaps.put( metadata.getEntityClass(), mainResultMap );
 
-                            new XMLMapperBuilder( in, configuration, token.getResultMapId(), configuration.getSqlFragments() ).parse();
-                        }
-                    }
+        ResultMapMark resultMap;
+        List<SelectMark> completedSelections = new ArrayList<>();
 
-                    return configuration.getResultMap( token.getResultMapId() );
-                }
-            } );
+        while ( !noResultSelections.isEmpty() ) {
+            copier = new ArrayList<>( noResultSelections );
+            noResultSelections.clear();
 
-        } catch ( ExecutionException e ) {
-            throw new RuntimeException( "Failure to load result map", e.getCause() );
-        }
-    }
-
-    public static ResultMap getResultMapWithMapReturned( Configuration configuration ) {
-        if ( null == resultMapWithTypeMap ) {
-            resultMapWithTypeMap = new ResultMap.Builder( configuration, "", Map.class, new ArrayList<ResultMapping>() ).build();
-        }
-
-        return resultMapWithTypeMap;
-    }
-
-    public static ResultMap getResultMapWithBasicTypeReturned( Configuration configuration, Class<?> type ) {
-        if ( !resultMapWithBasicType.containsKey( type ) ) {
-            resultMapWithBasicType.put( type, new ResultMap.Builder( configuration, "", type, new ArrayList<ResultMapping>() ).build() );
-        }
-
-        return resultMapWithBasicType.get( type );
-    }
-
-    private static class ResultMapToken {
-        private static final HashFunction hashFunction = Hashing.hmacMd5( ResultMapToken.class.getName().getBytes() );
-
-        private final String namespace;
-        private final String resultMapId;
-        private final String hashedCacheKey;
-
-        private ResultMapToken( CrudContextHolder.Context context ) {
-            this.namespace = context.getMetadata().getEntityClass().getName();
-
-            this.hashedCacheKey = hashFunction.newHasher().putString( namespace, Charsets.UTF_8 ).hash().toString();
-
-            this.resultMapId = String.format( "%s.%s%s", namespace, PREFIX, hashedCacheKey );
-        }
-
-        private String getNamespace() {
-            return namespace;
-        }
-
-        private String getResultMapId() {
-            return resultMapId;
-        }
-
-        private String getHashedCacheKey() {
-            return hashedCacheKey;
-        }
-    }
-
-    private static class ResultMapXmlContentBuilder {
-        private static String createMapperXmlContent( ResultMapToken token, EntityMetadata metadata ) {
-            List<String> sqlSegment = new ArrayList<>();
-            List<String> innerResultMap = new ArrayList<>();
-
-            List<String> context = new ArrayList<>( wrapperByResultMapTag( token.getHashedCacheKey(), metadata.getEntityClass(),
-                    buildResultMappings( metadata, innerResultMap, sqlSegment, false ) ) );
-
-            if ( !innerResultMap.isEmpty() ) {
-                context.add( "\n" );
-                context.addAll( innerResultMap );
-            }
-
-            if ( !sqlSegment.isEmpty() ) {
-                context.add( "\n" );
-                context.addAll( sqlSegment );
-            }
-
-            List<String> content = wrapperByHeader( wrapperByMapperTag( token.getNamespace(), context ) );
-
-            return Joiner.on( "\n" ).join( content );
-        }
-
-        private static List<String> buildResultMappings( EntityMetadata metadata, List<String> innerResultMap,
-                                                         List<String> sqlSegment, boolean isIgnoreAssociation ) {
-
-            List<String> localXmlLines = new ArrayList<>();
-
-            if ( metadata.getId() != null ) {
-                localXmlLines.add( buildIdTag( metadata.getId() ) );
-            }
-
-            for ( AttributeMetadata column : metadata.getColumns() ) {
-                if ( column.isPrimary() ) {
+            for ( SelectMark selection : copier ) {
+                if ( resultMaps.containsKey( selection.getType() ) ) {
+                    selection.setResultId( resultMaps.get( selection.getType() ).getId() );
+                    completedSelections.add( selection );
                     continue;
                 }
 
-                localXmlLines.add( buildResultTag( column ) );
+                resultMap = buildResultMap( selection.getResultId(), selection.getMetadata(), noResultSelections );
+                resultMaps.put( selection.getMetadata().getEntityClass(), resultMap );
+                completedSelections.add( selection );
+            }
+        }
+
+        return new Mapper( token.getNamespace(), new ArrayList<>( resultMaps.values() ), completedSelections ).toString();
+    }
+
+    private static ResultMapMark buildResultMap( String resultMapId, EntityMetadata metadata, List<SelectMark> noResultSelections ) {
+        List<? super ResultMark> results = new ArrayList<>();
+        for ( AttributeMetadata column : metadata.getColumns() ) {
+            results.add( new ResultMark( column ) );
+        }
+
+        ResultMark result;
+
+        for ( ForeignAttributeMetadata foreignColumn : metadata.getReferenceColumns() ) {
+            if ( foreignColumn.isCollection() ) {
+                result = new CollectionMark( foreignColumn );
+                noResultSelections.add( ( ( CollectionMark ) result ).getSelect() );
+
+            } else {
+                result = new AssociationMark( foreignColumn );
+                noResultSelections.add( ( ( AssociationMark ) result ).getSelect() );
             }
 
-            // Because javassist require proxy target object getter / setter method,
-            // and there are not getter / setter if using Map or any sub class of Map.
-            // Then I think the best way is just mapping the direct relationship, but drop other indirect relationship
-            if ( !isIgnoreAssociation ) {
-                List<ForeignAttributeMetadata> foreignAttributeMetadata = new ArrayList<>( metadata.getReferenceColumns() );
-                Collections.sort( foreignAttributeMetadata, new Comparator<ForeignAttributeMetadata>() {
-                    @Override
-                    public int compare( ForeignAttributeMetadata left, ForeignAttributeMetadata right ) {
-                        return left.isCollection() && right.isCollection() ? 0
-                                : left.isCollection() && !right.isCollection() ? 1 : -1;
-                    }
-                } );
+            results.add( result );
+        }
 
-                for ( ForeignAttributeMetadata column : foreignAttributeMetadata ) {
-                    localXmlLines.addAll( column.isCollection()
-                            ? wrapperByCollectionTag( column, innerResultMap, sqlSegment )
-                            : wrapperByAssociationTag( column, innerResultMap, sqlSegment ) );
-                }
+        return new ResultMapMark( resultMapId, metadata.getEntityClass(), results );
+    }
+}
+
+interface Priority {
+    int getPriority();
+}
+
+class Mapper {
+    private final List<ResultMapMark> resultMaps;
+    private final List<SelectMark> selects;
+    private final String namespace;
+
+    public Mapper( String namespace, List<ResultMapMark> resultMaps, List<SelectMark> selects ) {
+        this.resultMaps = resultMaps;
+        this.selects = selects;
+        this.namespace = namespace;
+    }
+
+    @Override
+    public String toString() {
+        List<String> resultMapClauses = new ArrayList<>();
+        for ( ResultMapMark resultMap : resultMaps ) {
+            resultMapClauses.add( resultMap.toString() );
+        }
+
+        List<String> selectionClauses = new ArrayList<>();
+        for ( SelectMark selection : selects ) {
+            selectionClauses.add( selection.toString() );
+        }
+
+        return Joiner.on( "\n" ).join( Lists.newArrayList(
+
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">",
+                String.format( "<mapper namespace=\"%s\">", namespace ),
+
+                "${resultMaps}",
+                "",
+                "${selections}",
+
+                "</mapper>"
+
+        ) ).replaceFirst( "\\$\\{resultMaps}", Joiner.on( "\n\n" ).join( resultMapClauses ) )
+                .replaceFirst( "\\$\\{selections}", Joiner.on( "\n\n" ).join( selectionClauses ) );
+    }
+}
+
+class ResultMapMark {
+    private final String id;
+    private final Class<?> type;
+    private final List<? super ResultMark> results;
+
+    public ResultMapMark( String id, Class<?> type, List<? super ResultMark> results ) {
+        this.id = id;
+        this.type = type;
+        this.results = results;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public String toString() {
+        Collections.sort( ( ( List<Priority> ) results ), new Comparator<Priority>() {
+            @Override
+            @ParametersAreNonnullByDefault
+            public int compare( Priority before, Priority after ) {
+                return Integer.compare( before.getPriority(), after.getPriority() );
             }
+        } );
 
-            return localXmlLines;
+        List<String> resultClauses = new ArrayList<>();
+        for ( Object result : results ) {
+            resultClauses.add( result.toString() );
         }
 
-        private static String buildIdTag( AttributeMetadata metadata ) {
-            return String.format( "<id property=\"%s\" column=\"%s\"/>", metadata.getJavaName(), metadata.getJdbcName() );
-        }
+        return Joiner.on( "\n" ).join( Lists.newArrayList(
+                String.format( "  <resultMap id=\"%s\" type=\"%s\">", id, type.getName() ),
+                "${results}",
+                "  </resultMap>"
+        ) ).replaceFirst( "\\$\\{results}", Joiner.on( "\n" ).join( resultClauses ) );
+    }
+}
 
-        private static String buildResultTag( AttributeMetadata metadata ) {
-            return String.format( "<result property=\"%s\" column=\"%s\"/>", metadata.getJavaName(), metadata.getJdbcName() );
-        }
+class ResultMark implements Priority {
+    private final boolean id;
+    private final String javaName;
+    private final String jdbcName;
 
-        private static List<String> wrapperByAssociationTag( ForeignAttributeMetadata column, List<String> innerResultMap, List<String> sqlSegment ) {
-            List<String> localXmlLines = new ArrayList<>();
-            String selectMark = String.format( "selectNo_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
-            String resultMapMark = String.format( "nestResultMap_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
+    ResultMark( AttributeMetadata metadata ) {
+        this.id = metadata.isPrimary();
+        this.javaName = metadata.getJavaName();
+        this.jdbcName = metadata.getJdbcName();
+    }
 
-            localXmlLines.add( String.format( "<association property=\"%s\" column=\"%s\" select=\"%s\" fetchType=\"%s\"/>",
-                    column.getJavaName(), column.getJdbcName(), selectMark, column.isLazy() ? "lazy" : "eager" ) );
+    public boolean isId() {
+        return id;
+    }
 
-            // Add result map declaration if actual type is entity
-            Class<?> resultMapType = column.isMap() ? Map.class : column.getEntityMetadata().getEntityClass();
+    public String getJavaName() {
+        return javaName;
+    }
 
-            // Drop indirect relationship if use Map
-            innerResultMap.addAll( wrapperByResultMapTag( resultMapMark, resultMapType,
-                    buildResultMappings( column.getEntityMetadata(), innerResultMap, sqlSegment, column.isMap() ) ) );
+    String getJdbcName() {
+        return jdbcName;
+    }
 
-            innerResultMap.add( "\n" );
+    @Override
+    public String toString() {
+        return String.format( "    <%s property=\"%s\" column=\"%s\"/>", id ? "id" : "result", javaName, jdbcName );
+    }
 
-            sqlSegment.add( String.format( "<select id=\"%s\" resultMap=\"%s\">", selectMark, PREFIX + resultMapMark ) );
-            sqlSegment.add( String.format( "select * from %s where %s = #{%s}", column.getEntityMetadata().getTableName(),
-                    column.getReferenceAttributeMetadata().getJdbcName(), column.getJavaName() ) );
-            sqlSegment.add( "</select>\n" );
+    @Override
+    public int getPriority() {
+        return id ? 0 : 1;
+    }
+}
 
-            return localXmlLines;
-        }
+class AssociationMark extends ResultMark implements Priority {
+    private String selectId = String.format( "selectNo_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
+    private ForeignAttributeMetadata metadata;
 
-        private static List<String> wrapperByCollectionTag( ForeignAttributeMetadata column, List<String> innerResultMap, List<String> sqlSegment ) {
-            List<String> localXmlLines = new ArrayList<>();
-            String selectMark = String.format( "selectNo_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
-            String resultMapMark = String.format( "nestResultMap_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
+    AssociationMark( ForeignAttributeMetadata metadata ) {
+        super( metadata );
 
-            Class<?> resultMapType = column.isNestMap() ? Map.class : column.getActualType();
+        this.metadata = metadata;
+    }
 
-            localXmlLines.add( String.format( "<collection property=\"%s\" column=\"%s\" ofType=\"%s\" select=\"%s\" fetchType=\"%s\"/>",
-                    column.getJavaName(), column.getJdbcName(), resultMapType.getName(), selectMark, column.isLazy() ? "lazy" : "eager" ) );
+    public SelectMark getSelect() {
+        return new SelectMark( selectId, metadata );
+    }
 
-            innerResultMap.addAll( wrapperByResultMapTag( resultMapMark, resultMapType,
-                    buildResultMappings( column.getEntityMetadata(), innerResultMap, sqlSegment, false ) ) );
-            innerResultMap.add( "\n" );
+    @Override
+    public String toString() {
+        return String.format( "    <association property=\"%s\" column=\"%s\" select=\"%s\" fetchType=\"%s\"/>",
+                getJavaName(), getJdbcName(), selectId, metadata.isLazy() ? "lazy" : "eager" );
+    }
 
-            // Add nest selection
-            sqlSegment.add( String.format( "<select id=\"%s\" resultMap=\"%s\">", selectMark, PREFIX + resultMapMark ) );
-            sqlSegment.add( String.format( "select * from %s where %s = #{%s}", column.getEntityMetadata().getTableName(),
-                    column.getReferenceAttributeMetadata().getJdbcName(), column.getJavaName() ) );
-            sqlSegment.add( "</select>\n" );
+    @Override
+    public int getPriority() {
+        return 2;
+    }
+}
 
-            return localXmlLines;
-        }
+class CollectionMark extends ResultMark implements Priority {
+    private String selectId = String.format( "selectNo_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
+    private ForeignAttributeMetadata metadata;
 
-        private static List<String> wrapperByResultMapTag( String key, Class<?> type, List<String> xmlLines ) {
-            List<String> localXmlLines = new ArrayList<>();
+    public CollectionMark( ForeignAttributeMetadata metadata ) {
+        super( metadata );
 
-            localXmlLines.add( String.format( "<resultMap id=\"%s%s\" type=\"%s\">", PREFIX, key, type.getName() ) );
-            localXmlLines.addAll( xmlLines );
-            localXmlLines.add( "</resultMap>" );
+        this.metadata = metadata;
+    }
 
-            return localXmlLines;
-        }
+    public SelectMark getSelect() {
+        return new SelectMark( selectId, metadata );
+    }
 
-        private static List<String> wrapperByMapperTag( String key, List<String> xmlLines ) {
-            List<String> localXmlLines = new ArrayList<>();
+    @Override
+    public String toString() {
+        return String.format( "    <collection property=\"%s\" column=\"%s\" ofType=\"%s\" select=\"%s\" fetchType=\"%s\"/>",
+                getJavaName(), getJdbcName(), metadata.getEntityMetadata().getEntityClass().getName(),
+                selectId, metadata.isLazy() ? "lazy" : "eager" );
+    }
 
-            localXmlLines.add( String.format( "<mapper namespace=\"%s\">", key ) );
-            localXmlLines.addAll( xmlLines );
-            localXmlLines.add( "</mapper>" );
+    @Override
+    public int getPriority() {
+        return 3;
+    }
+}
 
-            return localXmlLines;
-        }
+class SelectMark {
+    private final String id;
+    private final Class<?> type;
+    private final String targetTable;
+    private final String targetField;
+    private final String targetAttribute;
 
-        private static List<String> wrapperByHeader( List<String> xmlLines ) {
-            List<String> localXmlLines = new ArrayList<>();
+    private final EntityMetadata metadata;
 
-            localXmlLines.add( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
-            localXmlLines.add( "<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">\n" );
-            localXmlLines.addAll( xmlLines );
+    private String resultId = String.format( "nestResultMap_%s", UUID.randomUUID().toString().replaceAll( "-", "" ) );
 
-            return localXmlLines;
-        }
+    SelectMark( String id, ForeignAttributeMetadata metadata ) {
+        this.id = id;
+        this.type = metadata.isMap() ? Map.class : metadata.getEntityMetadata().getEntityClass();
+        this.targetTable = metadata.getEntityMetadata().getTableName();
+        this.targetField = metadata.getReferenceAttributeMetadata().getJdbcName();
+        this.targetAttribute = metadata.getReferenceAttributeMetadata().getJavaName();
+        this.metadata = metadata.getEntityMetadata();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public String getResultId() {
+        return resultId;
+    }
+
+    public EntityMetadata getMetadata() {
+        return metadata;
+    }
+
+    public SelectMark setResultId( String resultId ) {
+        this.resultId = resultId;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return Joiner.on( "\n" ).join( Lists.newArrayList(
+                String.format( "  <select id=\"%s\" resultMap=\"%s\">", id, resultId ),
+                String.format( "    select * from %s where %s = #{%s}", targetTable, targetField, targetAttribute ),
+                "  </select>"
+        ) );
     }
 }

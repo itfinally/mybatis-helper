@@ -23,11 +23,22 @@ import top.itfinally.mybatis.jpa.entity.PathMetadata;
 public class RootImpl<Entity, Collector extends AbstractCollector> extends FromImpl<Entity, Collector> implements Root<Entity>, Writable {
 
     private EntityMetadata entityMetadata;
+    private String namespace;
 
     public RootImpl( CriteriaBuilder builder, Collector queryCollector, EntityMetadata entityMetadata ) {
         super( builder, queryCollector );
 
         this.entityMetadata = entityMetadata;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    @Override
+    public Root<Entity> namespace( String namespace ) {
+        this.namespace = namespace;
+        return this;
     }
 
     @Override
@@ -37,6 +48,14 @@ public class RootImpl<Entity, Collector extends AbstractCollector> extends FromI
 
     @Override
     public String toFormatString( ParameterBus parameters ) {
-        return Strings.isNullOrEmpty( getAlias() ) ? entityMetadata.getTableName() : getAlias();
+        if ( !Strings.isNullOrEmpty( getAlias() ) ) {
+            return getAlias();
+        }
+
+        if ( !Strings.isNullOrEmpty( namespace ) ) {
+            return String.format( "%s_%s", namespace, entityMetadata.getTableName() );
+        }
+
+        return entityMetadata.getTableName();
     }
 }

@@ -172,14 +172,14 @@ public abstract class AbstractCollector implements Writable {
             }
 
             items[ item.index ] = String.format( "%s %s %s", renderJoinType( item.value.getType(), item.value.getClassName() ),
-                    metadata.getTableName(), ( ( Writable ) root ).toFormatString( parameters ) );
+                    getTableName( root, metadata ), ( ( Writable ) root ).toFormatString( parameters ) );
         }
 
         // 'from' clause
         List<String> tables = new ArrayList<>();
         for ( Root<?> root : unallocatedRoots ) {
             metadata = root.getModel().getEntityMetadata();
-            tables.add( String.format( "%s %s", metadata.getTableName(), ( ( Writable ) root ).toFormatString( parameters ) ) );
+            tables.add( String.format( "%s %s", getTableName( root, metadata ), ( ( Writable ) root ).toFormatString( parameters ) ) );
         }
 
         if ( tables.isEmpty() ) {
@@ -213,6 +213,14 @@ public abstract class AbstractCollector implements Writable {
         }
 
         return fromClause.toString();
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private String getTableName( Root<?> root, EntityMetadata metadata ) {
+        String namespace = ( ( RootImpl<?, AbstractCollector> ) root ).getNamespace();
+        return !Strings.isNullOrEmpty( namespace )
+                ? String.format( "%s.%s", namespace, metadata.getTableName() )
+                : metadata.getTableName();
     }
 
     protected String completeConditions( ParameterBus parameters ) {

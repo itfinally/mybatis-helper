@@ -12,4 +12,5 @@ package top.itfinally.mybatis.jpa.criteria;
  * </pre>
  */
 public interface Root<Entity> extends From<Entity> {
+    Root<Entity> namespace( String namespace );
 }

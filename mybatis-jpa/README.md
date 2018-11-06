@@ -283,15 +283,23 @@ public class DemoEntity {
 
 针对多对多这种关系, 由于这种关系是可以分解的, 并且考虑到程序分析其关系并且创造出关联查询 SQL 是不现实的, 因此插件不支持 `@ManyToMany` 的修饰, 建议分解成一对多的关系进行解决.
 
+##### 跨库( 表空间 )查询
+
+```java
+Root<DemoEntity> root = query.from( DemoEntity.class );
+query.select( root.namespace( "other_db" ) );
+manager.createQuery( query ).getSingleResult();
+```
+
+可以通过 `Root.namespace` 指定该表的数据库( 表空间 ).
+
 ##### 级联操作
 
-级联操作是指当实体内存在 `@OneToOne` 这类关系描述注解并且被修饰的属性的值不为空时, 对被关联的实体的处理方式. 
+通常 JPA 都会支持该特性, 但再三斟酌后, 觉得应该废弃级联操作. 原因如下:
 
-本插件仅支持 `@OneToOne`, `@OneToMany`, `@ManyToOne` 三种注解, `@ManyToMany` 由于需要维护中间表, 其中的实现过于复杂化, 因此这里不予支持.
+- 使用频率较低
+- 在多库环境下基本无能为力
+- 实体关系存在循环依赖时, 该特性的实现成本过高
 
-另外, <strong>增加/修改均需要在对应的实体属性上给出明确的值才会触发对应的流程, 而 delete 会自动获取对应的关联的数据项并删除.</strong>
-
-- Insert 操作
-
-  - @OneToOne 需要
+也就是说, 级联查询属于高投入低回报的特性, 因此在该插件内不予实现.
 

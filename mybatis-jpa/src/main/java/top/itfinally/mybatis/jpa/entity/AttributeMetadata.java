@@ -104,8 +104,8 @@ public class AttributeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hash( getJavaName(), getJdbcName(), isNullable(),
-                isPrimary(), getField(), getReadMethod(), getWriteMethod() );
+        return Objects.hash( getJavaName(), getJdbcName(), isNullable(), isPrimary(), getField(),
+                getReadMethod(), getWriteMethod() );
     }
 
     @Override

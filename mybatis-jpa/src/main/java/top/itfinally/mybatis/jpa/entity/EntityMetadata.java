@@ -19,6 +19,8 @@ public class EntityMetadata {
     private Class<?> entityClass;
     private AttributeMetadata id;
     private List<AttributeMetadata> columns;
+
+    // Do not use this attribute in equal & hashCode method
     private List<ForeignAttributeMetadata> referenceColumns;
 
     public String getTableName() {
@@ -74,12 +76,21 @@ public class EntityMetadata {
         return Objects.equals( getTableName(), metadata.getTableName() ) &&
                 Objects.equals( getEntityClass(), metadata.getEntityClass() ) &&
                 Objects.equals( getId(), metadata.getId() ) &&
-                Objects.equals( getColumns(), metadata.getColumns() ) &&
-                Objects.equals( getReferenceColumns(), metadata.getReferenceColumns() );
+                Objects.equals( getColumns(), metadata.getColumns() );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash( getTableName(), getEntityClass(), getId(), getColumns(), getReferenceColumns() );
+        return Objects.hash( getTableName(), getEntityClass(), getId(), getColumns() );
+    }
+
+    @Override
+    public String toString() {
+        return "EntityMetadata{" +
+                "tableName='" + tableName + '\'' +
+                ", entityClass=" + entityClass +
+                ", id=" + id +
+                ", columns=" + columns +
+                '}';
     }
 }

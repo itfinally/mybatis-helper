@@ -12,6 +12,7 @@ import top.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import top.itfinally.mybatis.jpa.entity.EntityMetadata;
 import top.itfinally.mybatis.jpa.entity.ForeignAttributeMetadata;
 
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -82,7 +83,10 @@ public abstract class BasicCrudSqlCreator {
         }
 
         for ( ForeignAttributeMetadata attr : metadata.getReferenceColumns() ) {
-            if ( attr.getField().getAnnotation( OneToOne.class ) == null || Map.class.isAssignableFrom( attr.getActualType() ) ) {
+            if ( attr.getField().getAnnotation( OneToOne.class ) == null
+                    || attr.getField().getAnnotation( ManyToOne.class ) == null
+                    || Map.class.isAssignableFrom( attr.getActualType() ) ) {
+
                 continue;
             }
 
@@ -147,7 +151,10 @@ public abstract class BasicCrudSqlCreator {
         }
 
         for ( ForeignAttributeMetadata attr : metadata.getReferenceColumns() ) {
-            if ( attr.getField().getAnnotation( OneToOne.class ) == null || Map.class.isAssignableFrom( attr.getActualType() ) ) {
+            if ( attr.getField().getAnnotation( OneToOne.class ) == null
+                    || attr.getField().getAnnotation( ManyToOne.class ) == null
+                    || Map.class.isAssignableFrom( attr.getActualType() ) ) {
+
                 continue;
             }
 

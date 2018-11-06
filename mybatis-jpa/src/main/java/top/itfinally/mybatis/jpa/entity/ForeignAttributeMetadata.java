@@ -92,8 +92,8 @@ public class ForeignAttributeMetadata extends AttributeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hash( super.hashCode(), getEntityMetadata(), isLazy(), isMap(), isCollection(), getActualType(),
-                getReferenceAttributeMetadata() );
+        return Objects.hash( super.hashCode(), getEntityMetadata(), isLazy(), isMap(), isCollection(),
+                getActualType(), getReferenceAttributeMetadata() );
     }
 
     @Override

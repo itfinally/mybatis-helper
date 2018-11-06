@@ -229,8 +229,8 @@ public class MetadataFactory {
                         "with relationship annotation like '@OneToOne'" );
             }
 
-            foreignAttributeMetadata = createAttributeMetadata( new ForeignAttributeMetadata(),
-                    column, field, pd ).setLazy( relationship.isLazy() );
+            foreignAttributeMetadata = createAttributeMetadata( new ForeignAttributeMetadata(), column, field, pd )
+                    .setLazy( relationship.isLazy() );
 
             attributeType = field.getType();
 
@@ -473,6 +473,10 @@ public class MetadataFactory {
             }
         }
 
+        private boolean hasRelationship() {
+            return oneToOne != null || oneToMany != null || manyToOne != null;
+        }
+
         private boolean isLazy() {
             if ( oneToOne != null ) {
                 return oneToOne.fetch() == FetchType.LAZY;
@@ -503,10 +507,6 @@ public class MetadataFactory {
             }
 
             return null;
-        }
-
-        private boolean hasRelationship() {
-            return oneToOne != null || oneToMany != null || manyToOne != null;
         }
     }
 }

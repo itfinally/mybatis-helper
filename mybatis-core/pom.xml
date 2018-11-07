@@ -12,7 +12,7 @@
   <url>https://www.itfinally.com</url>
 
   <parent>
-    <groupId>top.itfinally</groupId>
+    <groupId>io.github.itfinally</groupId>
     <artifactId>mybatis-helper-parent</artifactId>
     <version>1.0.0</version>
     <relativePath>../mybatis-helper-parent/pom.xml</relativePath>

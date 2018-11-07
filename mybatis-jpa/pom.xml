@@ -5,8 +5,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>mybatis-jpa</artifactId>
-  <!--<version>1.0.0.RELEASE</version>-->
-  <version>1.0.0.SNAPSHOT</version>
+  <version>1.0.0.RELEASE</version>
+  <!--<version>1.0.0.SNAPSHOT</version>-->
   <packaging>jar</packaging>
   <name>mybatis-jpa</name>
 
@@ -32,7 +32,8 @@
     <dependency>
       <groupId>top.itfinally</groupId>
       <artifactId>mybatis-core</artifactId>
-      <version>1.0.0.SNAPSHOT</version>
+      <version>1.0.0</version>
+      <!--<version>1.0.0.SNAPSHOT</version>-->
     </dependency>
   </dependencies>
 

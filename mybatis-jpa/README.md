@@ -291,7 +291,7 @@ query.select( root.namespace( "other_db" ) );
 manager.createQuery( query ).getSingleResult();
 ```
 
-可以通过 `Root.namespace` 指定该表的数据库( 表空间 ).
+如果需要对其他库或表空间内的表进行查询, 可以通过 `Root.namespace` 指定该表的数据库( 表空间 ), 默认情况下是查询 jdbc 路径上指定的数据库( 表空间 ).
 
 ##### 级联操作
 

@@ -27,7 +27,7 @@ Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向但不限于下
 ### 添加 maven 依赖( Java7/8 版本 )
 ```xml
 <dependency>
-  <groupId>top.itfinally</groupId>
+  <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-jpa-spring-boot-starter</artifactId>
   <version>1.0.0.RELEASE</version>
 </dependency>
@@ -96,7 +96,6 @@ interface DemoMapper extends BasicCrudMapper<DemoEntity> {
 ```
 
 然后就可以通过 spring 注入的对象执行相应的数据库操作了.
-
 
 #### 通用查询
 
@@ -298,7 +297,7 @@ manager.createQuery( query ).getSingleResult();
 通常 JPA 都会支持该特性, 但再三斟酌后, 觉得应该废弃级联操作. 原因如下:
 
 - 使用频率较低
-- 在多库环境下基本无能为力
+- 在分库分表环境下基本无能为力
 - 实体关系存在循环依赖时, 该特性的实现成本过高
 
 也就是说, 级联查询属于高投入低回报的特性, 因此在该插件内不予实现.

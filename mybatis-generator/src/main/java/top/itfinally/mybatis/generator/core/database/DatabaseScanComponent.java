@@ -1,20 +1,22 @@
 package top.itfinally.mybatis.generator.core.database;
 
+import com.google.common.base.Strings;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import top.itfinally.mybatis.core.TypeMappings;
+import top.itfinally.mybatis.generator.configuration.MybatisGeneratorProperties;
+import top.itfinally.mybatis.generator.core.TypeMappings;
 import top.itfinally.mybatis.generator.configuration.MybatisGeneratorConfiguration;
 import top.itfinally.mybatis.generator.configuration.NamingMapping;
 import top.itfinally.mybatis.generator.core.NamingConverter;
 import top.itfinally.mybatis.generator.core.PrimitiveType;
 import top.itfinally.mybatis.generator.core.database.entity.ColumnEntity;
 import top.itfinally.mybatis.generator.core.database.entity.TableEntity;
-import top.itfinally.mybatis.generator.core.database.mapper.InformationMapper;
-import top.itfinally.mybatis.generator.core.database.mapper.MysqlInformationMapper;
-import top.itfinally.mybatis.generator.core.database.mapper.OracleInformationMapper;
+import top.itfinally.mybatis.generator.core.database.mapper.MetadataMapper;
+import top.itfinally.mybatis.generator.core.database.mapper.MysqlMetadataMapper;
+import top.itfinally.mybatis.generator.core.database.mapper.OracleMetadataMapper;
 import top.itfinally.mybatis.generator.exception.UnknownTypeException;
 
 import javax.annotation.Resource;
@@ -35,14 +37,16 @@ import static top.itfinally.mybatis.core.MybatisCoreConfiguration.ORACLE;
  * </pre>
  */
 public abstract class DatabaseScanComponent {
-    private static Map<String, String> typePatches;
+    private static Map<String, Class<?>> jdbcToJavaMappings;
+    private static Map<String, String> jdbcTypeAliasMappings;
 
-    private static Map<String, TypeMapping> typeMappings;
-
-    protected static InformationMapper informationMapper;
+    protected static MetadataMapper metadataMapper;
 
     @Resource
     protected NamingConverter namingConverter;
+
+    @Resource
+    protected MybatisGeneratorProperties properties;
 
     @Autowired( required = false )
     protected NamingMapping namingMapping;
@@ -57,17 +61,17 @@ public abstract class DatabaseScanComponent {
      *  ***************************************************
      *
      * 该函数用于提供某些类型的别名,
-     * 当数据库获取的类型与 mybatis 的类型映射匹配不上时会搜索 typePatches.
+     * 当数据库获取的类型与 Mybatis 的类型映射匹配不上时会搜索 jdbcTypeAliasMappings.
      *
      * 如果希望为某些类型的映射提供别名, 应当覆盖该方法.
      *
-     * 当 typePatches 有合适的类型映射后会覆盖原有的 jdbcType 并提供对应的 javaType,
-     * 以上流程由 {@link Builder#initTypeMapping(ColumnEntity)} 实现
+     * 当 jdbcTypeAliasMappings 有合适的类型映射后会覆盖原有的 jdbcType 并提供对应的 javaType,
+     * 以上流程由 {@link Builder#getJavaType(ColumnEntity)} 实现
      *
      * @param typePatches 针对 jdbcType 属性的类型映射集合, key 为类型别名, value 为需要映射的类型名,
      *                    并且 value 必须存在是 {@link TypeHandlerRegistry} 的构造器里面映射的类型
      */
-    protected void typePatch( Map<String, String> typePatches ) {
+    protected void jdbcTypeAliasPatches( Map<String, String> typePatches ) {
     }
 
     /**
@@ -114,17 +118,17 @@ public abstract class DatabaseScanComponent {
         }
     }
 
-    protected static TypeMapping initTypeMapping( ColumnEntity column ) {
-        String key = column.getJdbcType();
-        TypeMapping typeMapping = typeMappings.get( key );
-        if ( typeMapping != null ) {
-            return typeMapping;
+    protected static Class<?> getJavaType( ColumnEntity column ) {
+        String jdbcTypeName = column.getJdbcType();
+        Class<?> javaTypeClass = jdbcToJavaMappings.get( jdbcTypeName );
+
+        if ( javaTypeClass != null ) {
+            return javaTypeClass;
         }
 
-        if ( typePatches.containsKey( key ) && typeMappings.containsKey(
-                column.setJdbcType( typePatches.get( key ) ).getJdbcType() ) ) {
-
-            return typeMappings.get( column.getJdbcType() );
+        String jdbcTypeAlias = jdbcTypeAliasMappings.get( jdbcTypeName );
+        if ( !Strings.isNullOrEmpty( jdbcTypeAlias ) && jdbcToJavaMappings.containsKey( jdbcTypeAlias ) ) {
+            return jdbcToJavaMappings.get( column.setJdbcType( jdbcTypeAlias ).getJdbcType() );
         }
 
         throw new UnknownTypeException( String.format( "No mapping found for jdbc type '%s'", column.getJdbcType() ) );
@@ -139,13 +143,13 @@ public abstract class DatabaseScanComponent {
         public Builder( MybatisGeneratorConfiguration configuration, ApplicationContext context ) {
             switch ( configuration.getDatabaseId() ) {
                 case MYSQL: {
-                    informationMapper = context.getBean( MysqlInformationMapper.class );
+                    metadataMapper = context.getBean( MysqlMetadataMapper.class );
                     activeClass = MysqlScanComponent.class;
                     break;
                 }
 
                 case ORACLE: {
-                    informationMapper = context.getBean( OracleInformationMapper.class );
+                    metadataMapper = context.getBean( OracleMetadataMapper.class );
                     activeClass = OracleScanComponent.class;
                     break;
                 }
@@ -160,29 +164,23 @@ public abstract class DatabaseScanComponent {
         }
 
         private void initTypeMapping( ApplicationContext context ) {
-            Map<String, TypeMapping> typeMappings = new HashMap<>();
-            Map<String, String> typePatches = new HashMap<>();
+            Map<String, Class<?>> jdbcToJavaMappings = new HashMap<>();
+            Map<String, String> jdbcTypeAliasMappings = new HashMap<>();
 
-            Class<?> typeCls;
-            Map<JdbcType, Class<?>> mapping = TypeMappings.getJdbcMapping();
+            Map<JdbcType, Class<?>> mapping = TypeMappings.jdbcMapping;
 
             for ( JdbcType item : JdbcType.values() ) {
                 if ( !mapping.containsKey( item ) ) {
                     continue;
                 }
 
-                typeCls = mapping.get( item );
-
-                typeMappings.put( item.toString(), new TypeMapping()
-                        .setJavaType( typeCls )
-                        .setJdbcType( item.toString() )
-                        .setJavaTypeFullName( typeCls.getName().matches( "^java\\.lang.*|^\\[.*" ) ? "" : typeCls.getName() ) );
+                jdbcToJavaMappings.put( item.toString(), mapping.get( item ) );
             }
 
-            context.getBean( activeClass ).typePatch( typePatches );
+            context.getBean( activeClass ).jdbcTypeAliasPatches( jdbcTypeAliasMappings );
 
-            DatabaseScanComponent.typePatches = Collections.unmodifiableMap( typePatches );
-            DatabaseScanComponent.typeMappings = Collections.unmodifiableMap( typeMappings );
+            DatabaseScanComponent.jdbcToJavaMappings = Collections.unmodifiableMap( jdbcToJavaMappings );
+            DatabaseScanComponent.jdbcTypeAliasMappings = Collections.unmodifiableMap( jdbcTypeAliasMappings );
         }
 
         public DatabaseScanComponent getScanComponent() {

@@ -1,12 +1,12 @@
 package top.itfinally.mybatis.generator.core.database;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.ibatis.type.JdbcType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import top.itfinally.mybatis.generator.core.PrimitiveType;
 import top.itfinally.mybatis.generator.core.database.entity.ColumnEntity;
 import top.itfinally.mybatis.generator.core.database.entity.ReferenceKeyEntity;
@@ -34,13 +34,13 @@ public class MysqlScanComponent extends DatabaseScanComponent {
 
     @Override
     public List<TableEntity> getTables() {
-        List<Map<String, String>> tables = informationMapper.getTables();
+        List<Map<String, String>> tables = metadataMapper.getTables();
         Map<String, TableEntity> tableMapping = new HashMap<>( tables.size() );
         List<TableEntity> tableInfoList = new ArrayList<>( tables.size() );
 
         TableEntity table;
         for ( Map<String, String> item : tables ) {
-            table = extractColumnsInfo( extractTableInfo( item ) );
+            table = extractColumnMetadata( extractTableMetadata( item ) );
             tableMapping.put( table.getJdbcName(), table );
             tableInfoList.add( table );
         }
@@ -52,10 +52,10 @@ public class MysqlScanComponent extends DatabaseScanComponent {
         return tableInfoList;
     }
 
-    private TableEntity extractTableInfo( Map<String, String> tableMetadata ) {
+    private TableEntity extractTableMetadata( Map<String, String> tableMetadata ) {
         TableEntity table = new TableEntity()
                 .setJdbcName( ( tableMetadata.get( "TABLE_NAME" ) ).toLowerCase() )
-                .setComment( StringUtils.isEmpty( tableMetadata.get( "TABLE_COMMENT" ) ) ? "" : ( tableMetadata.get( "TABLE_COMMENT" ) ).toLowerCase() );
+                .setComment( Strings.isNullOrEmpty( tableMetadata.get( "TABLE_COMMENT" ) ) ? "" : ( tableMetadata.get( "TABLE_COMMENT" ) ).toLowerCase() );
 
         String javaName = null;
         if ( namingMapping != null ) {
@@ -70,20 +70,20 @@ public class MysqlScanComponent extends DatabaseScanComponent {
                     Character.toString( table.getJdbcName().charAt( 0 ) ).toUpperCase() ) );
         }
 
-        if ( StringUtils.isEmpty( javaName ) ) {
+        if ( Strings.isNullOrEmpty( javaName ) ) {
             throw new UnknownNameMappingException( String.format( "No mapping found for table '%s'", table.getJdbcName() ) );
         }
 
         return table.setJavaName( javaName );
     }
 
-    private TableEntity extractColumnsInfo( TableEntity table ) {
-        List<Map<String, String>> columns = informationMapper.getColumns( table.getJdbcName() );
+    private TableEntity extractColumnMetadata( TableEntity table ) {
+        List<Map<String, String>> columns = metadataMapper.getColumns( table.getJdbcName() );
         List<ColumnEntity> columnList = new ArrayList<>( columns.size() );
         ColumnEntity column;
         Class<?> type;
 
-        TypeMapping typeMapping;
+        Class<?> javaType;
         for ( Map<String, String> item : columns ) {
             column = new ColumnEntity()
                     .setComment( item.get( "COLUMN_COMMENT" ) )
@@ -93,11 +93,10 @@ public class MysqlScanComponent extends DatabaseScanComponent {
                     .setPrimaryKey( "pri".equalsIgnoreCase( item.get( "COLUMN_KEY" ) ) )
                     .setJavaName( namingConverter.convert( ( item.get( "COLUMN_NAME" ) ).toLowerCase(), true ) );
 
-            typeMapping = initTypeMapping( column );
-            type = PrimitiveType.getType( typeMapping.getJavaType() );
+            javaType = getJavaType( column );
+            type = properties.isUseBoxType() ? javaType : PrimitiveType.getType( javaType );
 
-            buildGS( column.setJavaTypeClass( typeMapping.getJavaType() )
-                    .setJavaType( null == type ? typeMapping.getJavaType().getSimpleName() : type.getSimpleName() ) );
+            buildGS( column.setJavaTypeClass( javaType ).setJavaType( null == type ? javaType.getSimpleName() : type.getSimpleName() ) );
 
             if ( column.isPrimaryKey() ) {
                 table.addPrimaryKeys( column );
@@ -110,23 +109,23 @@ public class MysqlScanComponent extends DatabaseScanComponent {
     }
 
     private void relationshipAnalyzing( TableEntity table, Map<String, TableEntity> tableMapping ) {
-        List<Map<String, String>> tableKeys = informationMapper.getTableKeys( table.getJdbcName() );
+        List<Map<String, String>> tableKeys = metadataMapper.getTableKeys( table.getJdbcName() );
 
         ColumnEntity column;
         Set<String> keyNames;
         ColumnEntity[] columns;
-        List<String> indexTable;
+        List<String> indexList;
         ColumnEntity referenceColumn;
 
         for ( Map<String, String> item : tableKeys ) {
             if ( "unique".equalsIgnoreCase( item.get( "constraint_type" ) ) ) {
-                indexTable = Lists.newArrayList( item.get( "columns" ).toLowerCase().split( "," ) );
-                columns = new ColumnEntity[ indexTable.size() ];
-                keyNames = Sets.newHashSet( indexTable );
+                indexList = Lists.newArrayList( item.get( "columns" ).toLowerCase().split( "," ) );
+                columns = new ColumnEntity[ indexList.size() ];
+                keyNames = Sets.newHashSet( indexList );
 
                 for ( ColumnEntity subItem : table.getColumns() ) {
                     if ( keyNames.contains( subItem.getJdbcName() ) ) {
-                        columns[ indexTable.indexOf( subItem.getJdbcName() ) ] = subItem;
+                        columns[ indexList.indexOf( subItem.getJdbcName() ) ] = subItem;
                     }
                 }
 
@@ -168,13 +167,13 @@ public class MysqlScanComponent extends DatabaseScanComponent {
     }
 
     @Override
-    protected void typePatch( Map<String, String> typePatches ) {
-        super.typePatch( typePatches );
+    protected void jdbcTypeAliasPatches( Map<String, String> jdbcTypeAliasMappings ) {
+        super.jdbcTypeAliasPatches( jdbcTypeAliasMappings );
 
-        typePatches.put( "INT", JdbcType.INTEGER.toString() );
-        typePatches.put( "LONGTEXT", JdbcType.CLOB.toString() );
-        typePatches.put( "LONGBLOB", JdbcType.BLOB.toString() );
-        typePatches.put( "TEXT", JdbcType.LONGVARCHAR.toString() );
-        typePatches.put( "DATETIME", JdbcType.TIMESTAMP.toString() );
+        jdbcTypeAliasMappings.put( "INT", JdbcType.INTEGER.toString() );
+        jdbcTypeAliasMappings.put( "LONGTEXT", JdbcType.CLOB.toString() );
+        jdbcTypeAliasMappings.put( "LONGBLOB", JdbcType.BLOB.toString() );
+        jdbcTypeAliasMappings.put( "TEXT", JdbcType.LONGVARCHAR.toString() );
+        jdbcTypeAliasMappings.put( "DATETIME", JdbcType.TIMESTAMP.toString() );
     }
 }

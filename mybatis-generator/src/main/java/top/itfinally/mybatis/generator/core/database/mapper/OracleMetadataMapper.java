@@ -20,7 +20,7 @@ import java.util.Map;
  */
 @Mapper
 @Component
-public interface OracleInformationMapper extends InformationMapper {
+public interface OracleMetadataMapper extends MetadataMapper {
     @Override
     @Select( "select table_name from user_tables" )
     List<Map<String, String>> getTables();

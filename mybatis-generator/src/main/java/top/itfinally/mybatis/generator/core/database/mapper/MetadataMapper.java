@@ -14,7 +14,7 @@ import java.util.Map;
  * *********************************************
  * </pre>
  */
-public interface InformationMapper {
+public interface MetadataMapper {
     List<Map<String, String>> getTables();
 
     List<Map<String, String>> getColumns( String tableName );

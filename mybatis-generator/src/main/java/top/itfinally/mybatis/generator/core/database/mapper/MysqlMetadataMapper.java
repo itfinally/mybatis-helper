@@ -3,7 +3,6 @@ package top.itfinally.mybatis.generator.core.database.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,7 @@ import java.util.Map;
  * </pre>
  */
 @Mapper
-public interface MysqlInformationMapper extends InformationMapper {
+public interface MysqlMetadataMapper extends MetadataMapper {
 
     @Override
     @Select( "select * from information_schema.tables where table_schema = ( select database() )" )

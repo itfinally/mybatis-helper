@@ -19,6 +19,7 @@ mybatis:
     java-file-path: /mybatis-generator/src/test/java
     resources-path: /mybatis-generator/src/test/resources/mapper
     super-entity: top.itfinally.mybatis.BasicEntity
+    use-box-type: true
 
 #    include-services: true
 #    service-package: services.impl

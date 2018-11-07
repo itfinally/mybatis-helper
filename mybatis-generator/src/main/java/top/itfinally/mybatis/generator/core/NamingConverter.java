@@ -1,5 +1,6 @@
 package top.itfinally.mybatis.generator.core;
 
+import com.google.common.base.Joiner;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.generator.configuration.MybatisGeneratorProperties;
 
@@ -33,16 +34,6 @@ public class NamingConverter {
             names[ index ] = names[ index ].replaceAll( "^\\w", Character.toString( names[ index ].charAt( 0 ) ).toUpperCase() );
         }
 
-        return joinWithBlack( names );
-    }
-
-    private String joinWithBlack( String[] arr ) {
-        StringBuilder buffer = new StringBuilder();
-
-        for ( String item : arr ) {
-            buffer.append( item );
-        }
-
-        return buffer.toString();
+        return Joiner.on( "" ).join( names );
     }
 }

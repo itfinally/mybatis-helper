@@ -9,7 +9,7 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 ### 添加 maven 依赖
 ```xml
 <dependency>
-  <groupId>top.itfinally</groupId>
+  <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-generator-spring-boot-starter</artifactId>
   <version>1.0.0.RELEASE</version>
 </dependency>
@@ -24,15 +24,12 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 </properties>
 ```
 
-
 ### 使用方式
 
 只需要配置好必填参数即可, 然后继承 `top.itfinally.mybatis.generator.MybatisGeneratorRunner` 以普通的 spring-boot 项目启动即可
 
-
-
 ### 配置
-参数配置均以 ` mybatis.generator` 开头, 即 `mybatis.generator.xxx`, 下面参数以 yml 文件为例。
+参数配置均以 `mybatis.generator` 开头, 即 `mybatis.generator.xxx`, 下面参数以 yml 文件为例。
 
 ##### 必填参数
 
@@ -112,6 +109,9 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
   
 - <strong>force-to-generate</strong>
   当文件存在时, 是否强制生成并覆盖原文件, 默认 false
+  
+- <strong>use-box-type</strong>
+  对于基本类型是否使用包装类, 默认 false
   
 
 ### 参数配置说明

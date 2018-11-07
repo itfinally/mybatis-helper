@@ -228,9 +228,7 @@ public class MissionGroupBuilder {
                 continue;
             }
 
-            if ( !StringUtils.isEmpty( typeCls.getName().matches(
-                    "^java\\.lang.*|^\\[.*" ) ? "" : typeCls.getName() ) ) {
-
+            if ( !typeCls.getName().matches( "^java\\.lang.*|^\\[.*" ) ) {
                 table.addDepend( typeCls.getName() );
             }
         }

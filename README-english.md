@@ -1,5 +1,11 @@
 # Mybatis-Helper
 
+The project Mybatis-Helper is an plugins package for Mybatis, including entity generator / paging plugin / JPA ( criteria query )
+
+And this project is based on Java7, Mybatis3.4.6, and use HikariCP-java7 as database connection pool, Log4j as logging system.
+
+If you want to replace by other component, you can define you own exclusion and replace that.
+
 This is a general configuration doc, and detail of other components is in there are own folder.
 
 ### multi-dataSource

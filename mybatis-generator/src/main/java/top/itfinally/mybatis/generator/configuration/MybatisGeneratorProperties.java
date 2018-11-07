@@ -1,5 +1,6 @@
 package top.itfinally.mybatis.generator.configuration;
 
+import com.google.common.base.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -91,6 +92,9 @@ public class MybatisGeneratorProperties {
     // 是否强制生成文件, true 为强制生成
     private boolean forceToGenerate = false;
 
+    // 是否使用包装类型
+    private boolean useBoxType = false;
+
     public String getJavaFilePath() {
         if ( StringUtils.isEmpty( javaFilePath ) ) {
             throw new LackOfConfigurationException( "Require to config 'javaFilePath'." );
@@ -152,7 +156,7 @@ public class MybatisGeneratorProperties {
             return "";
         }
 
-        if ( StringUtils.isEmpty( servicesTemplateName ) ) {
+        if ( Strings.isNullOrEmpty( servicesTemplateName ) ) {
             throw new LackOfConfigurationException( "Require to config 'servicesTemplateName'." );
         }
 
@@ -164,7 +168,7 @@ public class MybatisGeneratorProperties {
             return "";
         }
 
-        if ( StringUtils.isEmpty( this.servicePackage ) ) {
+        if ( Strings.isNullOrEmpty( this.servicePackage ) ) {
             throw new LackOfConfigurationException( "Require to config 'servicePackage'." );
         }
 
@@ -180,7 +184,7 @@ public class MybatisGeneratorProperties {
             return "";
         }
 
-        if ( StringUtils.isEmpty( servicesInterfaceTemplateName ) ) {
+        if ( Strings.isNullOrEmpty( servicesInterfaceTemplateName ) ) {
             throw new LackOfConfigurationException( "Require to config 'servicesInterfaceTemplateName'." );
         }
 
@@ -192,7 +196,7 @@ public class MybatisGeneratorProperties {
             return "";
         }
 
-        if ( StringUtils.isEmpty( servicesInterfacePackage ) ) {
+        if ( Strings.isNullOrEmpty( servicesInterfacePackage ) ) {
             throw new LackOfConfigurationException( "Require to config 'servicesInterfacePackage'." );
         }
 
@@ -208,7 +212,7 @@ public class MybatisGeneratorProperties {
             return "";
         }
 
-        if ( StringUtils.isEmpty( controllerTemplateName ) ) {
+        if ( Strings.isNullOrEmpty( controllerTemplateName ) ) {
             throw new LackOfConfigurationException( "Require to config 'controllerTemplateName'." );
         }
 
@@ -220,7 +224,7 @@ public class MybatisGeneratorProperties {
             return "";
         }
 
-        if ( StringUtils.isEmpty( controllerPackage ) ) {
+        if ( Strings.isNullOrEmpty( controllerPackage ) ) {
             throw new LackOfConfigurationException( "Require to config 'controllerPackage'." );
         }
 
@@ -253,6 +257,10 @@ public class MybatisGeneratorProperties {
 
     public boolean isForceToGenerate() {
         return forceToGenerate;
+    }
+
+    public boolean isUseBoxType() {
+        return useBoxType;
     }
 
     // inner method
@@ -403,6 +411,11 @@ public class MybatisGeneratorProperties {
 
     public MybatisGeneratorProperties setForceToGenerate( boolean forceToGenerate ) {
         this.forceToGenerate = forceToGenerate;
+        return this;
+    }
+
+    public MybatisGeneratorProperties setUseBoxType( boolean useBoxType ) {
+        this.useBoxType = useBoxType;
         return this;
     }
 }

@@ -1,16 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-helper-parent</artifactId>
-  <version>1.0.0</version>
+  <!--<version>1.0.0.RELEASE</version>-->
+  <version>1.0.0.SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>mybatis-helper-parent</name>
   <url>https://www.itfinally.com</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://github.com/itfinally/mybatis-helper</url>
+    <connection>https://github.com/itfinally/mybatis-helper.git</connection>
+    <developerConnection>https://github.com/itfinally/mybatis-helper</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>itfinally</name>
+      <email>itfinally23@gmail.com</email>
+      <url>https://github.com/itfinally/mybatis-helper</url>
+    </developer>
+  </developers>
+
+  <!-- Deploy address -->
+  <distributionManagement>
+    <snapshotRepository>
+      <id>oss-deploy-server</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+
+    <repository>
+      <id>oss-deploy-server</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+  </distributionManagement>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -33,6 +69,10 @@
     <javax-persistence.version>1.0.2</javax-persistence.version>
     <javax-validation.version>2.0.1.Final</javax-validation.version>
     <thymeleaf-layout-dialect.version>2.2.0</thymeleaf-layout-dialect.version>
+
+    <gpg.version>1.6</gpg.version>
+    <source.version>3.0.1</source.version>
+    <javadoc.version>3.0.1</javadoc.version>
   </properties>
 
   <dependencies>
@@ -100,11 +140,41 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>${source.version}</version>
         <executions>
           <execution>
             <id>attach-sources</id>
             <goals>
               <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${javadoc.version}</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>${gpg.version}</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
             </goals>
           </execution>
         </executions>

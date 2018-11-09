@@ -6,12 +6,10 @@
 
   <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-helper-parent</artifactId>
-  <!--<version>1.0.0.RELEASE</version>-->
-  <version>1.0.0.SNAPSHOT</version>
+  <version>0.1.0.RELEASE</version>
+  <!--<version>1.0.0.SNAPSHOT</version>-->
   <packaging>pom</packaging>
-
   <name>mybatis-helper-parent</name>
-  <url>https://www.itfinally.com</url>
 
   <licenses>
     <license>

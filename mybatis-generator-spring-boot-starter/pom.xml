@@ -5,15 +5,15 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>mybatis-generator-spring-boot-starter</artifactId>
-  <!--<version>1.0.0.RELEASE</version>-->
-  <version>1.0.0.SNAPSHOT</version>
+  <version>0.1.0.RELEASE</version>
+  <!--<version>1.0.0.SNAPSHOT</version>-->
   <packaging>jar</packaging>
   <name>mybatis-generator-spring-boot-starter</name>
 
   <parent>
     <groupId>io.github.itfinally</groupId>
     <artifactId>mybatis-helper-parent</artifactId>
-    <version>1.0.0.SNAPSHOT</version>
+    <version>0.1.0.RELEASE</version>
     <relativePath>../mybatis-helper-parent/pom.xml</relativePath>
   </parent>
 
@@ -21,8 +21,8 @@
     <dependency>
       <groupId>io.github.itfinally</groupId>
       <artifactId>mybatis-generator</artifactId>
-      <!--<version>1.0.0.RELEASE</version>-->
-      <version>1.0.0.SNAPSHOT</version>
+      <version>0.1.0.RELEASE</version>
+      <!--<version>1.0.0.SNAPSHOT</version>-->
     </dependency>
   </dependencies>
 

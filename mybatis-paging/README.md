@@ -10,7 +10,7 @@ Mybatis-Paging 是一款为 Mybatis 而设计的分页插件, 该插件小巧轻
 <dependency>
   <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-paging-spring-boot-starter</artifactId>
-  <version>1.0.0.RELEASE</version>
+  <version>0.1.0.RELEASE</version>
 </dependency>
 ```
 

@@ -11,7 +11,7 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 <dependency>
   <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-generator-spring-boot-starter</artifactId>
-  <version>1.0.0.RELEASE</version>
+  <version>0.1.2.RELEASE</version>
 </dependency>
 ```
 
@@ -33,11 +33,14 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 
 ##### 必填参数
 
+- <strong>file-parent-path</strong>
+  生成文件的父级路径, 默认从项目根目录开始
+
 - <strong>java-file-path</strong>
-  生成 Java 文件的相对于项目的路径
+  生成 Java 文件的相对于 file-parent-path 的路径
   
 - <strong>resources-path</strong>
-  生成 Mapper.xml 文件的相对于项目的路径
+  生成 Mapper.xml 文件的相对于 file-parent-path 的路径
   
 - <strong>basic-package</strong>
   基础包名, 如 aaa.bbb.ccc
@@ -118,12 +121,14 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 
 ##### 路径
 
-<strong>涉及到路径的所有参数, 均以项目路径起始路径, 也就是说配置上的路径均为相对路径</strong>
+<strong>涉及到路径的所有参数, 均以 file-parent-path 属性作为起始路径, 也就是说配置上的路径均为相对路径</strong>
 
-如项目地址为 `/Users/xxxx/idea/myProject`
-那么我想在 maven 项目的 resources 里的 mapper 文件夹生成 xml 文件。
+如 file-parent-path 地址为 `/Users/xxxx/idea/myProject`, 也就是说使用默认路径
+那么我想在 maven 项目的 resources 里的 mapper 文件夹生成 xml 文件.
 
-即配置 `resources-path: /src/main/java/resources/`, 最终在代码使用的路径是 `/Users/xxxx/idea/myProject/src/main/java/resources/`
+即配置 `resources-path: /src/main/java/resources/`, 最终在代码使用的路径是 `/Users/xxxx/idea/myProject/src/main/java/resources`
+
+如果自定义了 file-parent-path, 值为 `/Users/xxxx/demo`, 那么最终代码使用的路径是 `/Users/xxxx/demo/src/main/java/resources`
 
 ##### 外置模版路径
 

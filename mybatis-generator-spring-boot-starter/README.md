@@ -8,7 +8,7 @@
 <dependency>
   <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-generator-spring-boot-starter</artifactId>
-  <version>1.0.0.RELEASE</version>
+  <version>0.1.2.RELEASE</version>
 </dependency>
 ```
 

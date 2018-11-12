@@ -109,14 +109,14 @@ public class FileBuilder {
             }
 
         } catch ( IOException e ) {
-            logger.warn( "生成文件失败, 数据表: {}, 文件路径: {}, 失败原因: {}",
+            logger.warn( "generate file failure, data table: {}, file path: {}, fail reason: {}",
                     jobGroup.getTableEntity().getJdbcName(), target.getParent(), e.getMessage() );
         }
     }
 
     private boolean isFolderExists( File path ) {
         if ( !( path.exists() || path.mkdirs() ) ) {
-            logger.warn( "创建文件目录失败" );
+            logger.warn( "create folder failure" );
             return false;
         }
 
@@ -137,7 +137,7 @@ public class FileBuilder {
                 continue;
             }
 
-            // previous 是 elems[ --index ], next 是 elems[ index++ ]
+            // previous is elems[ --index ], next is elems[ index++ ]
             if ( range > jobUnit.getBlankLine() ) {
                 iterator.previous();
                 delLine = iterator.previous();
@@ -150,7 +150,7 @@ public class FileBuilder {
                 if ( jobUnit.getBlankLine() > 0 ) {
                     iterator.next();
 
-                    // 重新添加指定数量的空行
+                    // Re-add the specified number of blank lines
                     for ( int subIndex = 0, subLength = jobUnit.getBlankLine(); subIndex < subLength; subIndex += 1 ) {
                         iterator.add( "" );
                     }

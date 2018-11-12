@@ -4,12 +4,8 @@ package top.itfinally.mybatis.jpa;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.jpa.context.MetadataFactory;
 
-import javax.annotation.Resource;
 import javax.persistence.Table;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,15 +25,10 @@ import java.util.*;
  * *********************************************
  * </pre>
  */
-@Component
-public class MybatisJpaEntityScanner implements ApplicationListener<ContextRefreshedEvent> {
+public class MybatisJpaEntityScanner {
     private static final Logger logger = LoggerFactory.getLogger( MybatisJpaEntityScanner.class );
 
-    @Resource
-    private MybatisJpaConfigureProperties properties;
-
-    @Override
-    public void onApplicationEvent( ContextRefreshedEvent contextRefreshedEvent ) {
+    public void scan( MybatisJpaConfigureProperties properties ) {
         if ( Strings.isNullOrEmpty( properties.getEntityScan() ) ) {
             return;
         }

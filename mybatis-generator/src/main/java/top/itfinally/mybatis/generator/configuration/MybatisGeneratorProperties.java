@@ -24,6 +24,9 @@ import java.io.FileNotFoundException;
 @ConfigurationProperties( prefix = "mybatis.generator" )
 public class MybatisGeneratorProperties {
 
+    // 生成文件使用的父级路径, 默认使用 system.dir 作为绝对路径
+    private String fileParentPath = System.getProperty( "user.dir" );
+
     // 生成 java 文件的路径
     private String javaFilePath;
 
@@ -266,7 +269,17 @@ public class MybatisGeneratorProperties {
     // inner method
 
     private String mixPath( String path ) {
-        String realPath = String.format( "%s%s", System.getProperty( "user.dir" ), path );
+        String parentPath = fileParentPath.trim();
+
+        if ( parentPath.endsWith( "/" ) ) {
+            parentPath = parentPath.replaceFirst( "/$", "" );
+        }
+
+        if ( path.trim().startsWith( "/" ) ) {
+            path = path.trim().replaceFirst( "^/", "" );
+        }
+
+        String realPath = String.format( "%s/%s", parentPath, path );
         File file = new File( realPath );
 
         if ( !( file.exists() || file.mkdirs() ) ) {
@@ -293,6 +306,15 @@ public class MybatisGeneratorProperties {
 
     // setter
 
+
+    public MybatisGeneratorProperties setFileParentPath( String fileParentPath ) {
+        if ( !fileParentPath.startsWith( "/" ) ) {
+            throw new IllegalStateException( "FileParentPath should be start with '/'" );
+        }
+
+        this.fileParentPath = fileParentPath;
+        return this;
+    }
 
     public MybatisGeneratorProperties setJavaFilePath( String javaFilePath ) {
         this.javaFilePath = javaFilePath;

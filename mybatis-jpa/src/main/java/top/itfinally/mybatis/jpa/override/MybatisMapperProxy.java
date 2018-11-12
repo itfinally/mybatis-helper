@@ -6,6 +6,8 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import top.itfinally.mybatis.jpa.MybatisJpaConfigureProperties;
+import top.itfinally.mybatis.jpa.MybatisJpaEntityScanner;
 import top.itfinally.mybatis.jpa.context.MetadataFactory;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaBuilder;
 import top.itfinally.mybatis.jpa.criteria.query.CriteriaQueryManager;
@@ -40,6 +42,8 @@ public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
     private final Class<Entity> entityClass;
     private final Set<String> methodNames;
 
+    private volatile boolean isInstalled = false;
+
     public MybatisMapperProxy( SqlSession sqlSession, Class<Mapper> mapperInterface, Class<Entity> entityClass, Map<Method, MapperMethod> methodCache ) {
         super( sqlSession, mapperInterface, methodCache );
 
@@ -57,6 +61,16 @@ public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
 
     @Override
     public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
+        // Delay initialize entity's metadata
+        if ( !isInstalled ) {
+            synchronized ( this ) {
+                if ( !isInstalled ) {
+                    new MybatisJpaEntityScanner().scan( BasicConditionalMapperInjector.properties );
+                    isInstalled = true;
+                }
+            }
+        }
+
         if ( proxy instanceof BasicCrudMapper ) {
             if ( method.getReturnType() == CriteriaQueryManager.class ) {
                 return new CriteriaQueryManager<>( BasicConditionalMapperInjector.conditionalMapper, entityClass );
@@ -88,10 +102,16 @@ public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
     @Component
     public static class BasicConditionalMapperInjector {
         private static volatile BasicCriteriaQueryInterface conditionalMapper;
+        private static volatile MybatisJpaConfigureProperties properties;
 
         @Autowired
         public void setConditionalMapper( BasicCriteriaQueryInterface conditionalMapper ) {
             BasicConditionalMapperInjector.conditionalMapper = conditionalMapper;
+        }
+
+        @Autowired
+        public void setProperties( MybatisJpaConfigureProperties properties ) {
+            BasicConditionalMapperInjector.properties = properties;
         }
     }
 }

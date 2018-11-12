@@ -29,7 +29,7 @@ Mybatis-Jpa 是基于 Mybatis 的对象查询插件, 主要面向但不限于下
 <dependency>
   <groupId>io.github.itfinally</groupId>
   <artifactId>mybatis-jpa-spring-boot-starter</artifactId>
-  <version>1.0.0.RELEASE</version>
+  <version>0.1.1.RELEASE</version>
 </dependency>
 ```
 

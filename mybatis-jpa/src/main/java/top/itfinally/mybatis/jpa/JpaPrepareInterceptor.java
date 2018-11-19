@@ -14,18 +14,21 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.core.MappedStatementCreator;
-import top.itfinally.mybatis.core.MybatisCoreConfiguration;
 import top.itfinally.mybatis.jpa.context.ResultMapFactory;
 import top.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface;
 import top.itfinally.mybatis.jpa.sql.BasicCrudSqlCreator;
 import top.itfinally.mybatis.jpa.context.CrudContextHolder;
 import top.itfinally.mybatis.jpa.sql.JpaSqlCreator;
 import top.itfinally.mybatis.jpa.sql.MysqlCrudSqlCreator;
+import top.itfinally.mybatis.jpa.sql.SqliteCrudSqlCreator;
 import top.itfinally.mybatis.jpa.utils.TypeMatcher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static top.itfinally.mybatis.core.MybatisCoreConfiguration.MYSQL;
+import static top.itfinally.mybatis.core.MybatisCoreConfiguration.SQLITE;
 
 /**
  * <pre>
@@ -57,8 +60,13 @@ public class JpaPrepareInterceptor implements Interceptor {
         XMLLanguageDriver languageDriver = new XMLLanguageDriver();
 
         switch ( jpaConfig.getDatabaseId() ) {
-            case MybatisCoreConfiguration.MYSQL: {
+            case MYSQL: {
                 sqlCreator = new MysqlCrudSqlCreator( configuration, languageDriver );
+                break;
+            }
+
+            case SQLITE: {
+                sqlCreator = new SqliteCrudSqlCreator( configuration, languageDriver );
                 break;
             }
 

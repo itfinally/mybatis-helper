@@ -57,7 +57,6 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
 
-    <mysql.version>5.1.46</mysql.version>
     <hikariCP.version>2.4.13</hikariCP.version>
     <guava.version>25.1-android</guava.version>
     <disruptor.version>3.3.4</disruptor.version>
@@ -117,12 +116,6 @@
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP-java7</artifactId>
       <version>${hikariCP.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>${mysql.version}</version>
     </dependency>
 
     <dependency>

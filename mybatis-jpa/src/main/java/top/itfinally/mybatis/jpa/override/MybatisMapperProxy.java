@@ -61,34 +61,36 @@ public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
 
     @Override
     public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
-        // Delay initialize entity's metadata
-        if ( !isInstalled ) {
-            synchronized ( this ) {
-                if ( !isInstalled ) {
-                    new MybatisJpaEntityScanner().scan( BasicConditionalMapperInjector.properties );
-                    isInstalled = true;
+        if ( proxy instanceof BasicCrudMapper || proxy instanceof BasicCriteriaQueryInterface ) {
+            // Delay initialize entity's metadata
+            if ( !isInstalled ) {
+                synchronized ( this ) {
+                    if ( !isInstalled ) {
+                        new MybatisJpaEntityScanner().scan( BasicConditionalMapperInjector.properties );
+                        isInstalled = true;
+                    }
                 }
             }
-        }
 
-        if ( proxy instanceof BasicCrudMapper ) {
-            if ( method.getReturnType() == CriteriaQueryManager.class ) {
-                return new CriteriaQueryManager<>( BasicConditionalMapperInjector.conditionalMapper, entityClass );
+            if ( proxy instanceof BasicCrudMapper ) {
+                if ( method.getReturnType() == CriteriaQueryManager.class ) {
+                    return new CriteriaQueryManager<>( BasicConditionalMapperInjector.conditionalMapper, entityClass );
+                }
+
+                if ( methodNames.contains( method.getName() ) ) {
+                    CrudContextHolder.buildEntityAndSetContext( entityClass, method );
+                }
+
+            } else {
+                Class<?> clazz = ( Class<?> ) ( ( Map ) args[ 0 ] ).get( ENTITY_CLASS );
+                EntityMetadata metadata = null;
+
+                if ( !( TypeMatcher.isBasicType( clazz ) || Map.class.isAssignableFrom( clazz ) ) ) {
+                    metadata = MetadataFactory.getMetadata( clazz );
+                }
+
+                CrudContextHolder.setContext( new CrudContextHolder.Context( JPA, metadata, method ) );
             }
-
-            if ( methodNames.contains( method.getName() ) ) {
-                CrudContextHolder.buildEntityAndSetContext( entityClass, method );
-            }
-
-        } else if ( proxy instanceof BasicCriteriaQueryInterface ) {
-            Class<?> clazz = ( Class<?> ) ( ( Map ) args[ 0 ] ).get( ENTITY_CLASS );
-            EntityMetadata metadata = null;
-
-            if ( !( TypeMatcher.isBasicType( clazz ) || Map.class.isAssignableFrom( clazz ) ) ) {
-                metadata = MetadataFactory.getMetadata( clazz );
-            }
-
-            CrudContextHolder.setContext( new CrudContextHolder.Context( JPA, metadata, method ) );
         }
 
         try {

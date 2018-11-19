@@ -17,6 +17,10 @@
     <relativePath>../mybatis-helper-parent/pom.xml</relativePath>
   </parent>
 
+  <properties>
+    <sql-parser.version>1.2</sql-parser.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>io.github.itfinally</groupId>
@@ -27,7 +31,7 @@
     <dependency>
       <groupId>com.github.jsqlparser</groupId>
       <artifactId>jsqlparser</artifactId>
-      <version>1.2</version>
+      <version>${sql-parser.version}</version>
     </dependency>
   </dependencies>
 

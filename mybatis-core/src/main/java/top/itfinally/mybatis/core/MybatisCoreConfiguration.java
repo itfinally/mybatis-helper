@@ -23,6 +23,7 @@ import java.util.List;
 public class MybatisCoreConfiguration {
     public static final String MYSQL = "mysql";
     public static final String ORACLE = "oracle";
+    public static final String SQLITE = "sqlite";
 
     private volatile String databaseId;
 

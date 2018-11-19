@@ -2,7 +2,6 @@ package top.itfinally.mybatis.generator.core.database.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import java.util.Map;
  * </pre>
  */
 @Mapper
-@Component
 public interface OracleMetadataMapper extends MetadataMapper {
     @Override
     @Select( "select table_name from user_tables" )

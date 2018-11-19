@@ -3,6 +3,8 @@ package top.itfinally.mybatis.generator.core.database;
 import com.google.common.base.Strings;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,8 @@ import top.itfinally.mybatis.generator.core.database.entity.TableEntity;
 import top.itfinally.mybatis.generator.core.database.mapper.MetadataMapper;
 import top.itfinally.mybatis.generator.core.database.mapper.MysqlMetadataMapper;
 import top.itfinally.mybatis.generator.core.database.mapper.OracleMetadataMapper;
+import top.itfinally.mybatis.generator.core.database.mapper.SqliteMetadataMapper;
+import top.itfinally.mybatis.generator.exception.UnknownNameMappingException;
 import top.itfinally.mybatis.generator.exception.UnknownTypeException;
 
 import javax.annotation.Resource;
@@ -24,6 +28,7 @@ import java.util.*;
 
 import static top.itfinally.mybatis.core.MybatisCoreConfiguration.MYSQL;
 import static top.itfinally.mybatis.core.MybatisCoreConfiguration.ORACLE;
+import static top.itfinally.mybatis.core.MybatisCoreConfiguration.SQLITE;
 
 /**
  * <pre>
@@ -37,6 +42,8 @@ import static top.itfinally.mybatis.core.MybatisCoreConfiguration.ORACLE;
  * </pre>
  */
 public abstract class DatabaseScanComponent {
+    private static Logger logger = LoggerFactory.getLogger( DatabaseScanComponent.class );
+
     private static Map<String, Class<?>> jdbcToJavaMappings;
     private static Map<String, String> jdbcTypeAliasMappings;
 
@@ -52,6 +59,27 @@ public abstract class DatabaseScanComponent {
     protected NamingMapping namingMapping;
 
     public abstract List<TableEntity> getTables();
+
+    protected TableEntity buildTableNameInJava( TableEntity table ) {
+        String javaName = null;
+        if ( namingMapping != null ) {
+            javaName = namingMapping.getMapping( table.getJdbcName() );
+        }
+
+        if ( null == namingMapping || table.getJdbcName().equals( javaName ) ) {
+            logger.warn( String.format( "There are no naming mapping to offer, convert underline-case to camel-case by default. " +
+                    "target table: %s", table.getJdbcName() ) );
+
+            return table.setJavaName( namingConverter.convert( table.getJdbcName(), false ).replaceAll( "^\\w",
+                    Character.toString( table.getJdbcName().charAt( 0 ) ).toUpperCase() ) );
+        }
+
+        if ( Strings.isNullOrEmpty( javaName ) ) {
+            throw new UnknownNameMappingException( String.format( "No mapping found for table '%s'", table.getJdbcName() ) );
+        }
+
+        return table.setJavaName( javaName );
+    }
 
     /**
      *  ***************************************************
@@ -151,6 +179,12 @@ public abstract class DatabaseScanComponent {
                 case ORACLE: {
                     metadataMapper = context.getBean( OracleMetadataMapper.class );
                     activeClass = OracleScanComponent.class;
+                    break;
+                }
+
+                case SQLITE: {
+                    metadataMapper = context.getBean( SqliteMetadataMapper.class );
+                    activeClass = SqliteScanComponent.class;
                     break;
                 }
 

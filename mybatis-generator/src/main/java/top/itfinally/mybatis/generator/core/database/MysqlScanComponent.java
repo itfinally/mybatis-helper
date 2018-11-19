@@ -4,15 +4,12 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.ibatis.type.JdbcType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import top.itfinally.mybatis.generator.core.PrimitiveType;
 import top.itfinally.mybatis.generator.core.database.entity.ColumnEntity;
 import top.itfinally.mybatis.generator.core.database.entity.ReferenceKeyEntity;
 import top.itfinally.mybatis.generator.core.database.entity.TableEntity;
 import top.itfinally.mybatis.generator.core.database.entity.UniqueKeyEntity;
-import top.itfinally.mybatis.generator.exception.UnknownNameMappingException;
 
 import java.util.*;
 
@@ -30,7 +27,6 @@ import java.util.*;
 
 @Component
 public class MysqlScanComponent extends DatabaseScanComponent {
-    private Logger logger = LoggerFactory.getLogger( getClass() );
 
     @Override
     public List<TableEntity> getTables() {
@@ -53,28 +49,11 @@ public class MysqlScanComponent extends DatabaseScanComponent {
     }
 
     private TableEntity extractTableMetadata( Map<String, String> tableMetadata ) {
-        TableEntity table = new TableEntity()
+        return buildTableNameInJava( new TableEntity()
                 .setJdbcName( ( tableMetadata.get( "TABLE_NAME" ) ).toLowerCase() )
-                .setComment( Strings.isNullOrEmpty( tableMetadata.get( "TABLE_COMMENT" ) ) ? "" : ( tableMetadata.get( "TABLE_COMMENT" ) ).toLowerCase() );
+                .setComment( Strings.isNullOrEmpty( tableMetadata.get( "TABLE_COMMENT" ) )
 
-        String javaName = null;
-        if ( namingMapping != null ) {
-            javaName = namingMapping.getMapping( table.getJdbcName() );
-        }
-
-        if ( null == namingMapping || table.getJdbcName().equals( javaName ) ) {
-            logger.warn( String.format( "There are no naming mapping to offer, convert underline-case to camel-case by default. " +
-                    "target table: %s", table.getJdbcName() ) );
-
-            return table.setJavaName( namingConverter.convert( table.getJdbcName(), false ).replaceAll( "^\\w",
-                    Character.toString( table.getJdbcName().charAt( 0 ) ).toUpperCase() ) );
-        }
-
-        if ( Strings.isNullOrEmpty( javaName ) ) {
-            throw new UnknownNameMappingException( String.format( "No mapping found for table '%s'", table.getJdbcName() ) );
-        }
-
-        return table.setJavaName( javaName );
+                        ? "" : ( tableMetadata.get( "TABLE_COMMENT" ) ).toLowerCase() ) );
     }
 
     private TableEntity extractColumnMetadata( TableEntity table ) {

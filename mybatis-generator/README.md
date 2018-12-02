@@ -26,7 +26,7 @@ Mybatis-Generator 是一款为 Mybatis 而设计的代码生成器, 使用 thyme
 
 ### 使用方式
 
-只需要配置好必填参数即可, 然后继承 `top.itfinally.mybatis.generator.MybatisGeneratorRunner` 以普通的 spring-boot 项目启动即可
+只需要配置好必填参数即可, 然后继承 `io.github.itfinally.mybatis.generator.MybatisGeneratorRunner` 以普通的 spring-boot 项目启动即可
 
 ### 配置
 参数配置均以 `mybatis.generator` 开头, 即 `mybatis.generator.xxx`, 下面参数以 yml 文件为例。
@@ -226,7 +226,7 @@ ReferenceKeyEntity
 
 ##### 数据表的名称转换
 
-在默认情况下, 名称转换是根据数据表的名称将下划线命名转为驼峰命名, 若需要自行转换命名, 可实现 `top.itfinally.mybatis.generator.configuration.NamingMapping`, 并且在 spring 内注册该实现类, 如下:
+在默认情况下, 名称转换是根据数据表的名称将下划线命名转为驼峰命名, 若需要自行转换命名, 可实现 `io.github.itfinally.mybatis.generator.configuration.NamingMapping`, 并且在 spring 内注册该实现类, 如下:
 
 ```java
 @Component

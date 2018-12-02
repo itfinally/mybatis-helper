@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=top.itfinally.mybatis.MybatisPagingAutoConfigurer
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=io.github.itfinally.mybatis.MybatisPagingAutoConfigurer

@@ -36,7 +36,7 @@ try ( Pager pager = Pager.getInstance() ) {
 
 ### 配置
 
-默认情况下是不需要配置的, 但也有例外情况。需要配置时使用 `top.itfinally.mybatis.paging.configuration.MybatisPagingProperties`, 并且如下设置:
+默认情况下是不需要配置的, 但也有例外情况。需要配置时使用 `io.github.itfinally.mybatis.paging.configuration.MybatisPagingProperties`, 并且如下设置:
 
 ```java
 @Bean
@@ -73,11 +73,11 @@ List<Entity> entities = mapper.selectList(); // limit 90, 100
 
 ##### 自定义分页Sql
 
-其中, 如果需要自行设置分页Sql, 可以继承 `top.itfinally.mybatis.paging.interceptor.hook.SqlHook` 并且通过`MybatisPagingProperties.addSqlHook( String databaseId, SqlHookBuilder sqlHookBuilder )` 编写自己的 hook( 钩子 ) 实现, 分页插件会优先检查外部提供的 Hook, 只有没对应的外部提供的 Hook 时才会调用默认的实现。
+其中, 如果需要自行设置分页Sql, 可以继承 `io.github.itfinally.mybatis.paging.interceptor.hook.SqlHook` 并且通过`MybatisPagingProperties.addSqlHook( String databaseId, SqlHookBuilder sqlHookBuilder )` 编写自己的 hook( 钩子 ) 实现, 分页插件会优先检查外部提供的 Hook, 只有没对应的外部提供的 Hook 时才会调用默认的实现。
 
 注: 上述方法的 databaseId 是指 jdbc 通过 `connection.getMetaData().getDatabaseProductName().toLowerCase()` 所返回的字符串, 不区分大小写。
 
-另外编写 Hook 时需要实现 `top.itfinally.mybatis.paging.interceptor.hook.SqlHook` 接口。
+另外编写 Hook 时需要实现 `io.github.itfinally.mybatis.paging.interceptor.hook.SqlHook` 接口。
 
 ```java
 public interface SqlHook {
@@ -89,7 +89,7 @@ public interface SqlHook {
 }
 ```
 
-其次实现 `top.itfinally.mybatis.paging.interceptor.hook.SqlHookBuilder` 接口以返回自定义的 Hook。
+其次实现 `io.github.itfinally.mybatis.paging.interceptor.hook.SqlHookBuilder` 接口以返回自定义的 Hook。
 
 ```java
 public interface SqlHookBuilder {

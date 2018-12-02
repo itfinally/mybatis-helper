@@ -1,0 +1,51 @@
+package io.github.itfinally.mybatis.jpa.utils;
+
+import com.google.common.collect.Sets;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+
+public enum TypeMatcher {
+  ;
+
+  private static final Set<Class<?>> basicTypeFilter = Sets.newHashSet( Arrays.asList(
+      boolean.class, Boolean.class, char.class, Character.class,
+      short.class, Short.class, int.class, Integer.class,
+      long.class, Long.class, float.class, Float.class,
+      double.class, Double.class, void.class, Void.class,
+      String.class
+  ) );
+
+  private static final Set<Class<?>> numericFilter = Sets.newHashSet( Arrays.<Class<?>>asList(
+      byte.class, short.class, int.class, long.class, float.class, double.class,
+      Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class ) );
+
+  public static boolean isBasicType( Class<?> type ) {
+    return basicTypeFilter.contains( type );
+  }
+
+  public static boolean isNumeric( Class<?> type ) {
+    return numericFilter.contains( type );
+  }
+
+  public static boolean hasNullValueInCollection( Collection<?> collection ) {
+    for ( Object item : collection ) {
+      if ( null == item ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public static boolean hasNullValueInArray( Object[] array ) {
+    for ( Object item : array ) {
+      if ( null == item ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}

@@ -70,7 +70,7 @@ public MybatisJpaConfigureProperties property() {
 }
 ```
 
-其次需要自己构建 `SqlSessionFactory`, 必须在这里将 `top.itfinally.mybatis.jpa.override.MybatisConfiguration` 配置类手动诸如 Mybatis 的工厂类, 否则 Mybatis 的内部实现将使用自己的 Configuration.
+其次需要自己构建 `SqlSessionFactory`, 必须在这里将 `io.github.itfinally.mybatis.jpa.override.MybatisConfiguration` 配置类手动诸如 Mybatis 的工厂类, 否则 Mybatis 的内部实现将使用自己的 Configuration.
 
 ```java
 @Bean
@@ -87,7 +87,7 @@ public SqlSessionFactory sqlSessionFactory( Configuration configuration, DataSou
 
 <strong>注意</strong>: 这里必须用 Spring 注入的 Configuration, 当然由于 JPA 插件的 @Primary 注解, 这里真正注入的是 MybatisConfiguration 类. 只有使用 Spring 注入的配置, 那么该对象才会带有诸如 property / yml 等配置文件上的配置属性, 如果使用自己 new 出来的对象, 那么将无法让 Spring 注入配置属性而导致配置文件上所有配置失效.
 
-最后 Mybatis 接口需要继承 `top.itfinally.mybatis.jpa.mapper.BasicCrudMapper<Entity>`, 该接口需要给出对应的实体, 比如 DemoMapper 负责 DemoEntity 实体的相关操作. 那么相应地, 需要在类型参数上指定该实体, 否则在使用该插件时会报错.
+最后 Mybatis 接口需要继承 `io.github.itfinally.mybatis.jpa.mapper.BasicCrudMapper<Entity>`, 该接口需要给出对应的实体, 比如 DemoMapper 负责 DemoEntity 实体的相关操作. 那么相应地, 需要在类型参数上指定该实体, 否则在使用该插件时会报错.
 
 ```java
 @Mapper

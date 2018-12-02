@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=top.itfinally.mybatis.MybatisJPAutoConfigurer
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=io.github.itfinally.mybatis.MybatisJPAutoConfigurer

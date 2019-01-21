@@ -1,5 +1,6 @@
 package io.github.itfinally.mybatis.jpa.override;
 
+import io.github.itfinally.logger.CheckedLogger;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.binding.MapperProxy;
 import org.apache.ibatis.session.SqlSession;
@@ -26,10 +27,12 @@ import static io.github.itfinally.mybatis.jpa.context.CrudContextHolder.ContextT
 import static io.github.itfinally.mybatis.jpa.mapper.BasicCriteriaQueryInterface.ENTITY_CLASS;
 
 public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
+  private static final CheckedLogger logger = new CheckedLogger( MybatisMapperProxy.class );
+
+  private volatile static boolean isInstalled = false;
+
   private final Class<Entity> entityClass;
   private final Set<String> methodNames;
-
-  private volatile boolean isInstalled = false;
 
   public MybatisMapperProxy( SqlSession sqlSession, Class<Mapper> mapperInterface, Class<Entity> entityClass, Map<Method, MapperMethod> methodCache ) {
     super( sqlSession, mapperInterface, methodCache );
@@ -52,8 +55,13 @@ public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
       if ( !isInstalled ) {
         synchronized ( this ) {
           if ( !isInstalled ) {
+
+            logger.info( "Ready to scan jpa entity and built" );
+
             MybatisJpaEntityScanner.scan( BasicConditionalMapperInjector.properties );
             isInstalled = true;
+
+            logger.info( "All jpa entity's metadata has completed built" );
           }
         }
       }
@@ -79,12 +87,7 @@ public class MybatisMapperProxy<Mapper, Entity> extends MapperProxy<Mapper> {
       }
     }
 
-    try {
-      return super.invoke( proxy, method, args );
-
-    } finally {
-      CrudContextHolder.clear();
-    }
+    return super.invoke( proxy, method, args );
   }
 
   @Component

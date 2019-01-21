@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Order
 @Configuration
-@EnableConfigurationProperties
 @ConditionalOnProperty( name = "mybatis.jpa.entity-scan" )
 @ComponentScan( basePackages = "io.github.itfinally.mybatis.jpa" )
 @MapperScan( basePackages = "io.github.itfinally.mybatis.jpa.mapper" )

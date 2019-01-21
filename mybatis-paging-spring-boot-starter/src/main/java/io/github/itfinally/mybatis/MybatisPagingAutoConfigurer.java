@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Configuration
-@EnableConfigurationProperties
 @Order( Ordered.HIGHEST_PRECEDENCE )
 @ComponentScan( basePackages = "io.github.itfinally.mybatis.paging" )
 public class MybatisPagingAutoConfigurer implements ApplicationListener<ContextRefreshedEvent> {

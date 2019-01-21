@@ -38,7 +38,7 @@ public class MysqlScanComponent extends DatabaseScanComponent {
 
   private TableEntity extractTableMetadata( Map<String, String> tableMetadata ) {
     return buildTableNameInJava( new TableEntity()
-        .setJdbcName( ( tableMetadata.get( "TABLE_NAME" ) ).toLowerCase() )
+        .setJdbcName( tableMetadata.get( "TABLE_NAME" ).toLowerCase() )
         .setComment( Strings.isNullOrEmpty( tableMetadata.get( "TABLE_COMMENT" ) )
 
             ? "" : ( tableMetadata.get( "TABLE_COMMENT" ) ).toLowerCase() ) );

@@ -1,27 +1,27 @@
 package io.github.itfinally.mybatis.jpa;
 
 
-import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.github.itfinally.logger.CheckedLogger;
 import io.github.itfinally.mybatis.jpa.context.MetadataFactory;
+import io.github.itfinally.mybatis.jpa.exception.FileNotFoundRuntimeException;
 
 import javax.persistence.Table;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 public class MybatisJpaEntityScanner {
-  private static final Logger logger = LoggerFactory.getLogger( MybatisJpaEntityScanner.class );
+  private static final CheckedLogger logger = new CheckedLogger( MybatisJpaEntityScanner.class );
 
   private MybatisJpaEntityScanner() {
   }
 
   public static void scan( MybatisJpaConfigureProperties properties ) {
-    if ( Strings.isNullOrEmpty( properties.getEntityScan() ) ) {
+    if ( isNullOrEmpty( properties.getEntityScan() ) ) {
       return;
     }
 
@@ -34,7 +34,7 @@ public class MybatisJpaEntityScanner {
 
         classPath = classPath.trim();
 
-        if ( Strings.isNullOrEmpty( classPath ) ) {
+        if ( isNullOrEmpty( classPath ) ) {
           continue;
         }
 
@@ -43,13 +43,13 @@ public class MybatisJpaEntityScanner {
         URL url = classLoader.getResource( classPath.replaceAll( "\\.", File.separator ) );
 
         if ( null == url ) {
-          throw new RuntimeException( new FileNotFoundException( String.format(
-              "No package found for route: '%s'", properties.getEntityScan() ) ) );
+          throw new FileNotFoundRuntimeException( String.format(
+              "No package found for route: '%s'", properties.getEntityScan() ) );
         }
 
         File folder = Paths.get( url.toURI() ).toFile();
         if ( !folder.exists() ) {
-          throw new RuntimeException( new FileNotFoundException( String.format( "Path is not exist: '%s'", folder.getPath() ) ) );
+          throw new FileNotFoundRuntimeException( String.format( "Path is not exist: '%s'", folder.getPath() ) );
         }
 
         walkFolder( classPath, classNames, new ArrayDeque<>( Collections.singletonList( folder ) ) );
@@ -94,7 +94,7 @@ public class MybatisJpaEntityScanner {
       if ( item.isFile() ) {
         className = extractClassName( classPath, item.getPath() );
 
-        if ( !Strings.isNullOrEmpty( className ) ) {
+        if ( !isNullOrEmpty( className ) ) {
           classNames.add( className );
         }
       }

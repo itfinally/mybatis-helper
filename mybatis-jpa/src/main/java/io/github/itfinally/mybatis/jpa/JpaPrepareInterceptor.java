@@ -1,6 +1,8 @@
 package io.github.itfinally.mybatis.jpa;
 
 import com.google.common.collect.Lists;
+import io.github.itfinally.exception.ExecutionRuntimeException;
+import io.github.itfinally.exception.NoSuchMethodRuntimeException;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -84,17 +86,22 @@ public class JpaPrepareInterceptor implements Interceptor {
       return invocation.proceed();
     }
 
-    if ( context.getContextType() == CrudContextHolder.ContextType.GENERAL ) {
-      genericQuery( invocation.getArgs(), context );
+    try {
+      if ( context.getContextType() == CrudContextHolder.ContextType.GENERAL ) {
+        genericQuery( invocation.getArgs(), context );
 
-    } else if ( context.getContextType() == CrudContextHolder.ContextType.JPA ) {
-      jpaQuery( invocation.getArgs(), context );
+      } else if ( context.getContextType() == CrudContextHolder.ContextType.JPA ) {
+        jpaQuery( invocation.getArgs(), context );
 
-    } else {
-      throw new IllegalStateException( "Unknown context type: " + context.getContextType() );
+      } else {
+        throw new IllegalStateException( "Unknown context type: " + context.getContextType() );
+      }
+
+      return invocation.proceed();
+
+    } finally {
+      CrudContextHolder.clear();
     }
-
-    return invocation.proceed();
   }
 
   @Override
@@ -159,8 +166,8 @@ public class JpaPrepareInterceptor implements Interceptor {
   private BoundSql getBoundSql( CrudContextHolder.Context context, Object unknownArgs ) {
     try {
       if ( !methods.containsKey( context.getMethod().getName() ) ) {
-        throw new RuntimeException( new NoSuchMethodException( String.format(
-            "Failure to getting method '%s' from sql creator", context.getMethod().getName() ) ) );
+        throw new NoSuchMethodRuntimeException( String.format(
+            "Failure to getting method '%s' from sql creator", context.getMethod().getName() ) );
       }
 
       Method method = methods.get( context.getMethod().getName() );
@@ -180,7 +187,7 @@ public class JpaPrepareInterceptor implements Interceptor {
       }
 
     } catch ( IllegalAccessException | InvocationTargetException e ) {
-      throw new RuntimeException( String.format( "Failure to invoke method '%s' by sqlSource object",
+      throw new ExecutionRuntimeException( String.format( "Failure to invoke method '%s' by sqlSource object",
           context.getMethod().getName() ), e );
     }
   }

@@ -99,7 +99,7 @@ public class MybatisConfiguration extends Configuration {
     @Override
     @SuppressWarnings( "unchecked" )
     public V put( @Nonnull String key, @Nonnull V value ) {
-      if ( containsKey( key ) ) {
+      if ( get( key, true ) != null ) {
         throw new IllegalArgumentException( name + " already contains value for " + key );
       }
 
@@ -115,9 +115,19 @@ public class MybatisConfiguration extends Configuration {
       return super.put( key, value );
     }
 
-    @Override
-    public V get( Object key ) {
+    private V get( Object key, boolean containsCheck ) {
       V value = super.get( key );
+
+      // Fix Java7 / Java8 issue
+      //
+      // On Java7, the 'containsKey' method has independent getting value process.
+      // But it merge to the 'get' method on Java8,
+      // and 'containsKey' just have one line code( 'get(key) != null;' )
+      // to processing value contains judge, so when the 'get' method has been override
+      // and use custom value checking, it always raise an exception 'IllegalArgumentException'.
+      if ( containsCheck ) {
+        return value;
+      }
 
       if ( value == null ) {
         throw new IllegalArgumentException( name + " does not contain value for " + key );
@@ -129,6 +139,11 @@ public class MybatisConfiguration extends Configuration {
       }
 
       return value;
+    }
+
+    @Override
+    public V get( Object key ) {
+      return get( key, false );
     }
 
     private String getShortName( String key ) {

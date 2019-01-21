@@ -98,24 +98,6 @@
       <artifactId>jsqlparser</artifactId>
       <version>${sql-parser.version}</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.xerial</groupId>
-      <artifactId>sqlite-jdbc</artifactId>
-      <version>3.25.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>${mysql.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP-java7</artifactId>
-      <version>2.4.13</version>
-    </dependency>
   </dependencies>
 
   <build>

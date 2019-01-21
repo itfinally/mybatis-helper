@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import io.github.itfinally.exception.ExecutionRuntimeException;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
@@ -52,7 +53,7 @@ public class ResultMapFactory {
       } );
 
     } catch ( ExecutionException e ) {
-      throw new RuntimeException( "Failure to load result map", e.getCause() );
+      throw new ExecutionRuntimeException( "Failure to load result map", e.getCause() );
     }
   }
 

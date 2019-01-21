@@ -2,6 +2,7 @@ package io.github.itfinally.mybatis.jpa.context;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import io.github.itfinally.logger.CheckedLogger;
 import org.springframework.beans.ExtendedBeanInfoFactory;
 import io.github.itfinally.mybatis.jpa.entity.AttributeMetadata;
 import io.github.itfinally.mybatis.jpa.entity.EntityMetadata;
@@ -21,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class MetadataFactory {
+  private static final CheckedLogger logger = new CheckedLogger( MetadataFactory.class );
   private static final ExtendedBeanInfoFactory beanInfoFactory = new ExtendedBeanInfoFactory();
 
   private static final ConcurrentMap<String, EntityMetadata> mappingsByName = new ConcurrentHashMap<>();
@@ -120,6 +122,8 @@ public class MetadataFactory {
     if ( null == metadata.getId() ) {
       throw new MissingPrimaryKeyException( String.format( "Missing a primary key on entity '%s'", entityClass.getName() ) );
     }
+
+    logger.info( "The entity '{}' metadata has completed built", metadata.getEntityClass().getName() );
   }
 
   private static void injectForeignAttribute( ForeignAttributeMetadata foreignAttributeMetadata ) {

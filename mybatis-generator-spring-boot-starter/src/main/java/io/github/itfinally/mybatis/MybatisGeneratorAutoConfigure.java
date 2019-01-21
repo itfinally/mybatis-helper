@@ -6,7 +6,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties
 @ComponentScan( basePackages = "io.github.itfinally.mybatis.generator" )
 @MapperScan( basePackages = "io.github.itfinally.mybatis.generator.core.database.mapper" )
 public class MybatisGeneratorAutoConfigure {
